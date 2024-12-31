@@ -1,0 +1,29 @@
+[package]
+name = "vmf-forge"
+version = "0.1.0"
+edition = "2021"
+authors = ["laVashik <contact@lavashik.lol>"]
+description = "A parser for Valve Map Format (VMF) files"
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/IaVashik/vmf-forge"
+documentation = "https://docs.rs/vmf-forge"
+keywords = ["vmf", "valve", "map", "parser", "source"]
+categories = ["parser-implementations", "game-development"]
+
+
+[dependencies]
+pest = "2.7.15"
+pest_derive = "2.7.15"
+serde = { version = "1.0.211", features = ["derive"] }
+indexmap = { version = "2.7.0", features = ["serde"] }
+serde_json = "1.0.132"
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
+
+[build-dependencies]
+pest_generator = "2.7.15"
+
+# [lints.rust]
+# unused = { level = "allow", priority = -1 } # For exploratory dev.
