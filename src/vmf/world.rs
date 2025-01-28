@@ -44,6 +44,7 @@ impl TryFrom<VmfBlock> for World {
                 }
                 _ => {
                     // The `world` block does not support other types of blocks (except `hidden`, `group` and `solid`)
+                    #[cfg(feature = "debug_assert_info")]
                     debug_assert!(false, "Unexpected block name: {}", inner_block.name);
                 }
             };
@@ -148,6 +149,7 @@ impl TryFrom<VmfBlock> for Solid {
                 "side" => solid.sides.push(Side::try_from(inner_block)?),
                 "editor" => solid.editor = Editor::try_from(inner_block)?,
                 _ => {
+                    #[cfg(feature = "debug_assert_info")]
                     debug_assert!(false, "Unexpected block name: {}", inner_block.name);
                 }
             }

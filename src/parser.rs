@@ -59,7 +59,7 @@ pub fn parse_vmf(input: &str) -> VmfResult<VmfFile> {
                 "cordon" => vmf_file.cordons.cordons.push(Cordon::try_from(block)?),
                 // ....
                 _ => {
-                    // The type of block is unknown / unexpected
+                    #[cfg(feature = "debug_assert_info")]
                     debug_assert!(false, "Unexpected block name: {}", block.name);
                 }
             }

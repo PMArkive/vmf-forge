@@ -54,6 +54,7 @@ impl TryFrom<VmfBlock> for Entity {
                     }
                 }
                 _ => {
+                    #[cfg(feature = "debug_assert_info")]
                     debug_assert!(
                         false,
                         "Unexpected block name: {}, id: {:?}",

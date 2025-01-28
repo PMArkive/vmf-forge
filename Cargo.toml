@@ -25,5 +25,8 @@ pretty_assertions = "1.4.0"
 [build-dependencies]
 pest_generator = "2.7.15"
 
+[features]
+debug_assert_info = []
+
 # [lints.rust]
 # unused = { level = "allow", priority = -1 } # For exploratory dev.
