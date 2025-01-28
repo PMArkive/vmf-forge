@@ -106,9 +106,10 @@ fn parse_block(pair: Pair<Rule>) -> VmfResult<VmfBlock> {
                         .as_str(),
                 );
 
-                key_values.entry(key)
-                    .and_modify(|existing_value: &mut String | {
-                        existing_value.push_str("\r");
+                key_values
+                    .entry(key)
+                    .and_modify(|existing_value: &mut String| {
+                        existing_value.push('\r');
                         existing_value.push_str(&value);
                     })
                     .or_insert(value);

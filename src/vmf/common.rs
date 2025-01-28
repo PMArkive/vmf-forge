@@ -77,14 +77,14 @@ impl From<Editor> for VmfBlock {
         }
         key_values.insert(
             "visgroupshown".to_string(),
-            val.visgroup_shown.to_01_string(), 
+            val.visgroup_shown.to_01_string(),
         );
         key_values.insert(
             "visgroupautoshown".to_string(),
             val.visgroup_auto_shown.to_01_string(),
         );
         if let Some(comments) = val.comments {
-            key_values.insert("comments".to_string(), comments); 
+            key_values.insert("comments".to_string(), comments);
         }
         if let Some(logical_pos) = val.logical_pos {
             key_values.insert("logicalpos".to_string(), logical_pos);

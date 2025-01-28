@@ -244,13 +244,12 @@ impl Entities {
     }
 }
 
-
 // utils func
 fn process_connections(map: IndexMap<String, String>) -> Option<Vec<(String, String)>> {
     if map.is_empty() {
         return None;
     }
-    
+
     let result = map
         .iter()
         .flat_map(|(key, value)| {
@@ -259,6 +258,6 @@ fn process_connections(map: IndexMap<String, String>) -> Option<Vec<(String, Str
                 .map(move |part| (key.clone(), part.to_string()))
         })
         .collect();
-    
+
     Some(result)
 }

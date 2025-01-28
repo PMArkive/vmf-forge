@@ -197,7 +197,8 @@ impl TryFrom<VmfBlock> for Cordon {
 
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
         let (min, max) = block
-            .blocks.first()
+            .blocks
+            .first()
             .ok_or_else(|| VmfError::InvalidFormat("Missing 'box' block in Cordon".to_string()))
             .and_then(|sub_block| {
                 Ok((

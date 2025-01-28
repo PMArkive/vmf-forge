@@ -18,9 +18,9 @@ pub use crate::VmfFile;
 pub use crate::errors::{VmfError, VmfResult};
 
 pub use crate::vmf::{
-    entities::{Entities, Entity},
-    metadata::{VersionInfo, VisGroups, VisGroup, ViewSettings},
-    regions::{Cameras, Camera, Cordon, Cordons},
-    world::{World, Solid, Side},
     common::Editor,
+    entities::{Entities, Entity},
+    metadata::{VersionInfo, ViewSettings, VisGroup, VisGroups},
+    regions::{Camera, Cameras, Cordon, Cordons},
+    world::{Side, Solid, World},
 };
