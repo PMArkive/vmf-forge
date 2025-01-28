@@ -39,14 +39,14 @@ impl TryFrom<VmfBlock> for VersionInfo {
     }
 }
 
-impl Into<VmfBlock> for VersionInfo {
-    fn into(self) -> VmfBlock {
+impl From<VersionInfo> for VmfBlock {
+    fn from(val: VersionInfo) -> Self {
         let mut key_values = IndexMap::new();
-        key_values.insert("editorversion".to_string(), self.editor_version.to_string());
-        key_values.insert("editorbuild".to_string(), self.editor_build.to_string());
-        key_values.insert("mapversion".to_string(), self.map_version.to_string());
-        key_values.insert("formatversion".to_string(), self.format_version.to_string());
-        key_values.insert("prefab".to_string(), self.prefab.to_01_string());
+        key_values.insert("editorversion".to_string(), val.editor_version.to_string());
+        key_values.insert("editorbuild".to_string(), val.editor_build.to_string());
+        key_values.insert("mapversion".to_string(), val.map_version.to_string());
+        key_values.insert("formatversion".to_string(), val.format_version.to_string());
+        key_values.insert("prefab".to_string(), val.prefab.to_01_string());
 
         VmfBlock {
             name: "versioninfo".to_string(),
@@ -109,15 +109,15 @@ impl TryFrom<VmfBlock> for VisGroups {
     }
 }
 
-impl Into<VmfBlock> for VisGroups {
-    fn into(self) -> VmfBlock {
+impl From<VisGroups> for VmfBlock {
+    fn from(val: VisGroups) -> Self {
         let mut visgroups_block = VmfBlock {
             name: "visgroups".to_string(),
             key_values: IndexMap::new(),
-            blocks: Vec::with_capacity(self.groups.len()),
+            blocks: Vec::with_capacity(val.groups.len()),
         };
 
-        for group in self.groups {
+        for group in val.groups {
             visgroups_block.blocks.push(group.into())
         }
 
@@ -141,7 +141,7 @@ impl VmfSerializable for VisGroups {
             output.push_str(&group.to_vmf_string(indent_level));
         }
 
-        output.push_str(&format!("\n{}}}\n", indent));
+        output.push_str(&format!("{}}}\n", indent));
         output
     }
 }
@@ -185,8 +185,8 @@ impl TryFrom<VmfBlock> for VisGroup {
     }
 }
 
-impl Into<VmfBlock> for VisGroup {
-    fn into(self) -> VmfBlock {
+impl From<VisGroup> for VmfBlock {
+    fn from(val: VisGroup) -> Self {
         // Create a block for VisGroup
         let mut visgroup_block = VmfBlock {
             name: "visgroup".to_string(),
@@ -197,16 +197,16 @@ impl Into<VmfBlock> for VisGroup {
         // Adds key-value pairs for VisGroup
         visgroup_block
             .key_values
-            .insert("name".to_string(), self.name);
+            .insert("name".to_string(), val.name);
         visgroup_block
             .key_values
-            .insert("visgroupid".to_string(), self.id.to_string());
+            .insert("visgroupid".to_string(), val.id.to_string());
         visgroup_block
             .key_values
-            .insert("color".to_string(), self.color);
+            .insert("color".to_string(), val.color);
 
         // If the `VisGroup` has a child element, adds it as nested block
-        if let Some(children) = self.children {
+        if let Some(children) = val.children {
             for child in children {
                 visgroup_block.blocks.push(child.into());
             }
@@ -269,17 +269,17 @@ impl TryFrom<VmfBlock> for ViewSettings {
     }
 }
 
-impl Into<VmfBlock> for ViewSettings {
-    fn into(self) -> VmfBlock {
+impl From<ViewSettings> for VmfBlock {
+    fn from(val: ViewSettings) -> Self {
         let mut key_values = IndexMap::new();
-        key_values.insert("bSnapToGrid".to_string(), self.snap_to_grid.to_01_string());
-        key_values.insert("bShowGrid".to_string(), self.show_grid.to_01_string());
+        key_values.insert("bSnapToGrid".to_string(), val.snap_to_grid.to_01_string());
+        key_values.insert("bShowGrid".to_string(), val.show_grid.to_01_string());
         key_values.insert(
             "bShowLogicalGrid".to_string(),
-            self.show_logical_grid.to_01_string(),
+            val.show_logical_grid.to_01_string(),
         );
-        key_values.insert("nGridSpacing".to_string(), self.grid_spacing.to_string());
-        key_values.insert("bShow3DGrid".to_string(), self.show_3d_grid.to_01_string());
+        key_values.insert("nGridSpacing".to_string(), val.grid_spacing.to_string());
+        key_values.insert("bShow3DGrid".to_string(), val.show_3d_grid.to_01_string());
 
         VmfBlock {
             name: "viewsettings".to_string(),

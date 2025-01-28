@@ -72,13 +72,13 @@ impl TryFrom<VmfBlock> for Entity {
     }
 }
 
-impl Into<VmfBlock> for Entity {
-    fn into(self) -> VmfBlock {
-            let editor = self.editor.into();
+impl From<Entity> for VmfBlock {
+    fn from(val: Entity) -> Self {
+        let editor = val.editor.into();
 
         VmfBlock {
             name: "entity".to_string(),
-            key_values: self.key_values,
+            key_values: val.key_values,
             blocks: vec![editor],
         }
     }

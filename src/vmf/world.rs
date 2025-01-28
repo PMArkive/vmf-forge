@@ -53,17 +53,17 @@ impl TryFrom<VmfBlock> for World {
     }
 }
 
-impl Into<VmfBlock> for World {
-    fn into(self) -> VmfBlock {
+impl From<World> for VmfBlock {
+    fn from(val: World) -> Self {
         let mut blocks = Vec::new();
 
         // Add solids
-        for solid in self.solids {
+        for solid in val.solids {
             blocks.push(solid.into());
         }
 
         // Add hidden solids
-        for hidden_solid in self.hidden {
+        for hidden_solid in val.hidden {
             blocks.push(VmfBlock {
                 name: "hidden".to_string(),
                 key_values: IndexMap::new(),
@@ -72,13 +72,13 @@ impl Into<VmfBlock> for World {
         }
 
         // Add groups
-        if let Some(group) = self.group {
+        if let Some(group) = val.group {
             blocks.push(group.into());
         }
 
         VmfBlock {
             name: "world".to_string(),
-            key_values: self.key_values,
+            key_values: val.key_values,
             blocks,
         }
     }
@@ -97,14 +97,14 @@ impl VmfSerializable for World {
         }
 
         // Solids Block
-        if self.solids.len() > 0 {
+        if !self.solids.is_empty() {
             for solid in &self.solids {
                 output.push_str(&solid.to_vmf_string(indent_level + 1));
             }
         }
 
         // Hidden Solids Block
-        if self.hidden.len() > 0 {
+        if !self.hidden.is_empty() {
             output.push_str(&format!("{0}\tHidden\n{0}\t{{\n", indent));
             for solid in &self.hidden {
                 output.push_str(&solid.to_vmf_string(indent_level + 2));
@@ -157,23 +157,23 @@ impl TryFrom<VmfBlock> for Solid {
     }
 }
 
-impl Into<VmfBlock> for Solid {
-    fn into(self) -> VmfBlock {
+impl From<Solid> for VmfBlock {
+    fn from(val: Solid) -> Self {
         let mut blocks = Vec::new();
 
         // Adds sides
-        for side in self.sides {
+        for side in val.sides {
             blocks.push(side.into());
         }
 
         // Adds editor
-        blocks.push(self.editor.into());
+        blocks.push(val.editor.into());
 
         VmfBlock {
             name: "solid".to_string(),
             key_values: {
                 let mut key_values = IndexMap::new();
-                key_values.insert("id".to_string(), self.id.to_string());
+                key_values.insert("id".to_string(), val.id.to_string());
                 key_values
             },
             blocks,
@@ -257,23 +257,23 @@ impl TryFrom<VmfBlock> for Side {
     }
 }
 
-impl Into<VmfBlock> for Side {
-    fn into(self) -> VmfBlock {
+impl From<Side> for VmfBlock {
+    fn from(val: Side) -> Self {
         let mut key_values = IndexMap::new();
-        key_values.insert("id".to_string(), self.id.to_string());
-        key_values.insert("plane".to_string(), self.plane);
-        key_values.insert("material".to_string(), self.material);
-        key_values.insert("uaxis".to_string(), self.u_axis);
-        key_values.insert("vaxis".to_string(), self.v_axis);
-        if let Some(rotation) = self.rotation {
+        key_values.insert("id".to_string(), val.id.to_string());
+        key_values.insert("plane".to_string(), val.plane);
+        key_values.insert("material".to_string(), val.material);
+        key_values.insert("uaxis".to_string(), val.u_axis);
+        key_values.insert("vaxis".to_string(), val.v_axis);
+        if let Some(rotation) = val.rotation {
             key_values.insert("rotation".to_string(), rotation.to_string());
         }
-        key_values.insert("lightmapscale".to_string(), self.lightmap_scale.to_string());
+        key_values.insert("lightmapscale".to_string(), val.lightmap_scale.to_string());
         key_values.insert(
             "smoothing_groups".to_string(),
-            self.smoothing_groups.to_string(),
+            val.smoothing_groups.to_string(),
         );
-        if let Some(flags) = self.flags {
+        if let Some(flags) = val.flags {
             key_values.insert("flags".to_string(), flags.to_string());
         }
 
@@ -407,25 +407,25 @@ impl TryFrom<VmfBlock> for DispInfo {
     }
 }
 
-impl Into<VmfBlock> for DispInfo {
-    fn into(self) -> VmfBlock {
+impl From<DispInfo> for VmfBlock {
+    fn from(val: DispInfo) -> Self {
         let blocks = vec![
-            self.normals.into_vmf_block("normals"),
-            self.distances.into_vmf_block("distances"),
-            self.offsets.into_vmf_block("offsets"),
-            self.offset_normals.into_vmf_block("offset_normals"),
-            self.alphas.into_vmf_block("alphas"),
-            self.triangle_tags.into_vmf_block("triangle_tags"),
-            Self::allowed_verts_into_vmf_block(self.allowed_verts),
+            val.normals.into_vmf_block("normals"),
+            val.distances.into_vmf_block("distances"),
+            val.offsets.into_vmf_block("offsets"),
+            val.offset_normals.into_vmf_block("offset_normals"),
+            val.alphas.into_vmf_block("alphas"),
+            val.triangle_tags.into_vmf_block("triangle_tags"),
+            DispInfo::allowed_verts_into_vmf_block(val.allowed_verts),
         ];
 
         let mut key_values = IndexMap::new();
-        key_values.insert("power".to_string(), self.power.to_string());
-        key_values.insert("startposition".to_string(), self.start_position);
-        key_values.insert("elevation".to_string(), self.elevation.to_string());
-        key_values.insert("subdiv".to_string(), self.subdiv.to_01_string());
+        key_values.insert("power".to_string(), val.power.to_string());
+        key_values.insert("startposition".to_string(), val.start_position);
+        key_values.insert("elevation".to_string(), val.elevation.to_string());
+        key_values.insert("subdiv".to_string(), val.subdiv.to_01_string());
 
-        if let Some(flags) = self.flags {
+        if let Some(flags) = val.flags {
             key_values.insert("flags".to_string(), flags.to_string());
         }
 
@@ -592,8 +592,8 @@ impl TryFrom<VmfBlock> for DispRows {
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
         let mut rows = Vec::with_capacity(block.key_values.len());
         for (key, value) in block.key_values {
-            if key.starts_with("row") {
-                let index = key[3..]
+            if let Some(stripped_idx) = key.strip_prefix("row") {
+                let index = stripped_idx
                     .parse::<usize>()
                     .map_err(|e| VmfError::ParseInt(e, key.to_string()))?;
                 if index >= rows.len() {
@@ -683,18 +683,18 @@ impl TryFrom<VmfBlock> for Group {
     }
 }
 
-impl Into<VmfBlock> for Group {
-    fn into(self) -> VmfBlock {
+impl From<Group> for VmfBlock {
+    fn from(val: Group) -> Self {
         let mut blocks = Vec::with_capacity(2);
 
         // Adds Editor block
-        blocks.push(self.editor.into());
+        blocks.push(val.editor.into());
 
         VmfBlock {
             name: "group".to_string(),
             key_values: {
                 let mut key_values = IndexMap::new();
-                key_values.insert("id".to_string(), self.id.to_string());
+                key_values.insert("id".to_string(), val.id.to_string());
                 key_values
             },
             blocks,

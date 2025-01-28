@@ -34,16 +34,16 @@ impl TryFrom<VmfBlock> for Cameras {
     }
 }
 
-impl Into<VmfBlock> for Cameras {
-    fn into(self) -> VmfBlock {
-        let mut blocks = Vec::with_capacity(self.cams.len());
+impl From<Cameras> for VmfBlock {
+    fn from(val: Cameras) -> Self {
+        let mut blocks = Vec::with_capacity(val.cams.len());
 
-        for cam in self.cams {
+        for cam in val.cams {
             blocks.push(cam.into());
         }
 
         let mut key_values = IndexMap::new();
-        key_values.insert("active".to_string(), self.active.to_string());
+        key_values.insert("active".to_string(), val.active.to_string());
 
         VmfBlock {
             name: "cameras".to_string(),
@@ -99,11 +99,11 @@ impl TryFrom<VmfBlock> for Camera {
     }
 }
 
-impl Into<VmfBlock> for Camera {
-    fn into(self) -> VmfBlock {
+impl From<Camera> for VmfBlock {
+    fn from(val: Camera) -> Self {
         let mut key_values = IndexMap::new();
-        key_values.insert("position".to_string(), self.position);
-        key_values.insert("look".to_string(), self.look);
+        key_values.insert("position".to_string(), val.position);
+        key_values.insert("look".to_string(), val.look);
 
         VmfBlock {
             name: "camera".to_string(),
@@ -138,18 +138,18 @@ impl TryFrom<VmfBlock> for Cordons {
     }
 }
 
-impl Into<VmfBlock> for Cordons {
-    fn into(self) -> VmfBlock {
+impl From<Cordons> for VmfBlock {
+    fn from(val: Cordons) -> Self {
         let mut blocks = Vec::new();
 
         // Converts each  Cordon to a VmfBlock and adds it to the `blocks` vector
-        for cordon in self.cordons {
+        for cordon in val.cordons {
             blocks.push(cordon.into());
         }
 
         // Creates a VmfBlock for Cordons
         let mut key_values = IndexMap::new();
-        key_values.insert("active".to_string(), self.active.to_string());
+        key_values.insert("active".to_string(), val.active.to_string());
 
         VmfBlock {
             name: "cordons".to_string(),
@@ -197,8 +197,7 @@ impl TryFrom<VmfBlock> for Cordon {
 
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
         let (min, max) = block
-            .blocks
-            .get(0)
+            .blocks.first()
             .ok_or_else(|| VmfError::InvalidFormat("Missing 'box' block in Cordon".to_string()))
             .and_then(|sub_block| {
                 Ok((
@@ -222,17 +221,17 @@ impl TryFrom<VmfBlock> for Cordon {
     }
 }
 
-impl Into<VmfBlock> for Cordon {
-    fn into(self) -> VmfBlock {
+impl From<Cordon> for VmfBlock {
+    fn from(val: Cordon) -> Self {
         // Creates key_values for Cordon
         let mut key_values = IndexMap::new();
-        key_values.insert("name".to_string(), self.name);
-        key_values.insert("active".to_string(), self.active.to_01_string());
+        key_values.insert("name".to_string(), val.name);
+        key_values.insert("active".to_string(), val.active.to_01_string());
 
         // Creates a block for the box with `mins/maxs`
         let mut box_block_key_values = IndexMap::new();
-        box_block_key_values.insert("mins".to_string(), self.min);
-        box_block_key_values.insert("maxs".to_string(), self.max);
+        box_block_key_values.insert("mins".to_string(), val.min);
+        box_block_key_values.insert("maxs".to_string(), val.max);
 
         // Creates a VmfBlock for the box
         let box_block = VmfBlock {

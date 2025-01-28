@@ -65,28 +65,28 @@ impl TryFrom<VmfBlock> for Editor {
     }
 }
 
-impl Into<VmfBlock> for Editor {
-    fn into(self) -> VmfBlock {
+impl From<Editor> for VmfBlock {
+    fn from(val: Editor) -> VmfBlock {
         let mut key_values = IndexMap::new();
-        key_values.insert("color".to_string(), self.color);
-        if let Some(visgroup_id) = self.visgroup_id {
+        key_values.insert("color".to_string(), val.color);
+        if let Some(visgroup_id) = val.visgroup_id {
             key_values.insert("visgroupid".to_string(), visgroup_id.to_string());
         }
-        if let Some(group_id) = self.group_id {
+        if let Some(group_id) = val.group_id {
             key_values.insert("groupid".to_string(), group_id.to_string());
         }
         key_values.insert(
             "visgroupshown".to_string(),
-            self.visgroup_shown.to_01_string(),
+            val.visgroup_shown.to_01_string(), 
         );
         key_values.insert(
             "visgroupautoshown".to_string(),
-            self.visgroup_auto_shown.to_01_string(),
+            val.visgroup_auto_shown.to_01_string(),
         );
-        if let Some(comments) = self.comments {
-            key_values.insert("comments".to_string(), comments);
+        if let Some(comments) = val.comments {
+            key_values.insert("comments".to_string(), comments); 
         }
-        if let Some(logical_pos) = self.logical_pos {
+        if let Some(logical_pos) = val.logical_pos {
             key_values.insert("logicalpos".to_string(), logical_pos);
         }
 
