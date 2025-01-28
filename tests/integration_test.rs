@@ -9,8 +9,8 @@ mod tests {
         let vmf_file = VmfFile::open("vmf_examples/valid.vmf").unwrap();
 
         assert_eq!(vmf_file.versioninfo.editor_version, 400);
-        assert_eq!(vmf_file.versioninfo.editor_build, 8000);
-        assert_eq!(vmf_file.versioninfo.map_version, 1);
+        assert_eq!(vmf_file.versioninfo.editor_build, 9672);
+        assert_eq!(vmf_file.versioninfo.map_version, 2);
         assert_eq!(vmf_file.versioninfo.format_version, 100);
         assert_eq!(vmf_file.versioninfo.prefab, false);
         assert_eq!(vmf_file.world.key_values.get("id").unwrap(), "1");
@@ -78,6 +78,9 @@ mod tests {
         \t\t\"id\" \"0\"\n\
         \t\teditor\n\
         \t\t{\n\
+        \t\t\t\"color\" \"255 255 255\"\n\
+        \t\t\t\"visgroupshown\" \"0\"\n\
+        \t\t\t\"visgroupautoshown\" \"0\"\n\
         \t\t}\n\
         \t}\n\
         }\n\

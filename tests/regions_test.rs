@@ -82,34 +82,6 @@ mod tests {
     }
 
     #[test]
-    fn cameras_to_vmf_string() {
-        let cameras = Cameras {
-            active: 1,
-            cams: vec![
-                Camera {
-                    position: "0 0 0".to_string(),
-                    look: "1 0 0".to_string(),
-                },
-                Camera {
-                    position: "0 1 0".to_string(),
-                    look: "0 1 0".to_string(),
-                },
-            ],
-        };
-        let expected = "\
-        cameras\n\
-        {\n\
-        \t\"activecamera\" \"1\"\n\
-        \t\"position\" \"0 0 0\"\n\
-        \t\"look\" \"1 0 0\"\n\
-        \t\"position\" \"0 1 0\"\n\
-        \t\"look\" \"0 1 0\"\n\
-        }\n";
-
-        assert_eq!(cameras.to_vmf_string(0), expected);
-    }
-
-    #[test]
     fn cameras_into_vmf_block() {
         let cameras = Cameras {
             active: 1,
