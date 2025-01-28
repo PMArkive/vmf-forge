@@ -29,43 +29,40 @@ pub fn parse_vmf(input: &str) -> VmfResult<VmfFile> {
     let mut vmf_file = VmfFile::default();
 
     for pair in parsed.into_inner() {
-        match pair.as_rule() {
-            Rule::block => {
-                let block: VmfBlock = parse_block(pair)?;
+        if pair.as_rule() == Rule::block {
+            let block: VmfBlock = parse_block(pair)?;
 
-                match block.name.to_lowercase().as_str() {
-                    // -- metadatas
-                    "versioninfo" => vmf_file.versioninfo = VersionInfo::try_from(block)?,
-                    "visgroups" => vmf_file.visgroups = VisGroups::try_from(block)?,
-                    "viewsettings" => vmf_file.viewsettings = ViewSettings::try_from(block)?,
+            match block.name.to_lowercase().as_str() {
+                // -- metadatas
+                "versioninfo" => vmf_file.versioninfo = VersionInfo::try_from(block)?,
+                "visgroups" => vmf_file.visgroups = VisGroups::try_from(block)?,
+                "viewsettings" => vmf_file.viewsettings = ViewSettings::try_from(block)?,
 
-                    // world
-                    "world" => vmf_file.world = World::try_from(block)?,
+                // world
+                "world" => vmf_file.world = World::try_from(block)?,
 
-                    // -- entities
-                    "entity" => vmf_file.entities.vec.push(Entity::try_from(block)?),
-                    "hidden" => {
-                        if let Some(hidden_block) = block.blocks.first() {
-                            vmf_file
-                                .hiddens
-                                .vec
-                                .push(Entity::try_from(hidden_block.to_owned())?)
-                        }
-                    }
-
-                    // -- regions
-                    "cameras" => vmf_file.cameras = Cameras::try_from(block)?,
-                    "cordons" => vmf_file.cordons = Cordons::try_from(block)?,
-                    // for old version of VMF
-                    "cordon" => vmf_file.cordons.cordons.push(Cordon::try_from(block)?),
-                    // ....
-                    _ => {
-                        // The type of block is unknown / unexpected
-                        debug_assert!(false, "Unexpected block name: {}", block.name);
+                // -- entities
+                "entity" => vmf_file.entities.vec.push(Entity::try_from(block)?),
+                "hidden" => {
+                    if let Some(hidden_block) = block.blocks.first() {
+                        vmf_file
+                            .hiddens
+                            .vec
+                            .push(Entity::try_from(hidden_block.to_owned())?)
                     }
                 }
+
+                // -- regions
+                "cameras" => vmf_file.cameras = Cameras::try_from(block)?,
+                "cordons" => vmf_file.cordons = Cordons::try_from(block)?,
+                // for old version of VMF
+                "cordon" => vmf_file.cordons.cordons.push(Cordon::try_from(block)?),
+                // ....
+                _ => {
+                    // The type of block is unknown / unexpected
+                    debug_assert!(false, "Unexpected block name: {}", block.name);
+                }
             }
-            _ => {}
         }
     }
 
@@ -108,7 +105,13 @@ fn parse_block(pair: Pair<Rule>) -> VmfResult<VmfBlock> {
                         .ok_or(VmfError::InvalidFormat("value not found".to_string()))?
                         .as_str(),
                 );
-                key_values.insert(key, value);
+
+                key_values.entry(key)
+                    .and_modify(|existing_value: &mut String | {
+                        existing_value.push_str("\r");
+                        existing_value.push_str(&value);
+                    })
+                    .or_insert(value);
             }
             Rule::block => {
                 blocks.push(parse_block(item)?);

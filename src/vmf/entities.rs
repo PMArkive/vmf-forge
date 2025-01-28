@@ -46,7 +46,7 @@ impl TryFrom<VmfBlock> for Entity {
         for block in block.blocks {
             match block.name.as_str() {
                 "editor" => ent.editor = Editor::try_from(block)?,
-                "connections" => ent.connections = Some(block.key_values.into_iter().collect()),
+                "connections" => ent.connections = process_connections(block.key_values),
                 "solid" => solids.push(Solid::try_from(block)?),
                 "hidden" => {
                     if let Some(hidden_block) = block.blocks.first() {
@@ -74,7 +74,7 @@ impl TryFrom<VmfBlock> for Entity {
 
 impl Into<VmfBlock> for Entity {
     fn into(self) -> VmfBlock {
-        let editor = self.editor.into();
+            let editor = self.editor.into();
 
         VmfBlock {
             name: "entity".to_string(),
@@ -104,6 +104,13 @@ impl VmfSerializable for Entity {
                 output.push_str(&format!("{}\t\t\"{}\" \"{}\"\n", indent, out, inp));
             }
             output.push_str(&format!("{}\t}}\n", indent));
+        }
+
+        // Solids block
+        if let Some(solids) = &self.solids {
+            for solid in solids {
+                output.push_str(&solid.to_vmf_string(indent_level + 1));
+            }
         }
 
         // Editor block
@@ -150,7 +157,7 @@ impl Entities {
     ) -> impl Iterator<Item = &'a Entity> + 'a {
         self.vec
             .iter()
-            .filter(move |ent| ent.key_values.get(key).map_or(false, |v| v == value))
+            .filter(move |ent| ent.key_values.get(key).is_some_and(|v| v == value))
     }
 
     /// Returns an iterator over the entities that have the specified key-value pair, allowing modification.
@@ -166,7 +173,7 @@ impl Entities {
     ) -> impl Iterator<Item = &'a mut Entity> + 'a {
         self.vec
             .iter_mut()
-            .filter(move |ent| ent.key_values.get(key).map_or(false, |v| v == value))
+            .filter(move |ent| ent.key_values.get(key).is_some_and(|v| v == value))
     }
 
     /// Returns an iterator over the entities with the specified classname.
@@ -234,4 +241,23 @@ impl Entities {
     ) -> impl Iterator<Item = &'a mut Entity> + 'a {
         self.find_by_keyvalue_mut("model", model)
     }
+}
+
+
+// utils func
+fn process_connections(map: IndexMap<String, String>) -> Option<Vec<(String, String)>> {
+    if map.is_empty() {
+        return None;
+    }
+    
+    let result = map
+        .iter()
+        .flat_map(|(key, value)| {
+            value
+                .split('\r')
+                .map(move |part| (key.clone(), part.to_string()))
+        })
+        .collect();
+    
+    Some(result)
 }

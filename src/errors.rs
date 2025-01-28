@@ -4,12 +4,12 @@ use pest::error::Error as PestError;
 use std::io;
 
 /// Represents an error that occurred during VMF parsing or serialization.
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VmfError {
     /// An I/O error occurred.
-    Io(io::Error),
+    Io(io::ErrorKind),
     /// A parsing error occurred.
-    Parse(PestError<crate::parser::Rule>),
+    Parse(Box<PestError<crate::parser::Rule>>),
     /// The VMF file has an invalid format.
     InvalidFormat(String),
     /// An error occurred while parsing an integer.
@@ -38,13 +38,13 @@ impl std::error::Error for VmfError {}
 
 impl From<io::Error> for VmfError {
     fn from(err: io::Error) -> Self {
-        VmfError::Io(err)
+        VmfError::Io(err.kind())
     }
 }
 
 impl From<PestError<crate::parser::Rule>> for VmfError {
     fn from(err: PestError<crate::parser::Rule>) -> Self {
-        VmfError::Parse(err)
+        VmfError::Parse(Box::new(err))
     }
 }
 

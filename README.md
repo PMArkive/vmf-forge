@@ -52,10 +52,6 @@ fn main() -> Result<(), VmfError> {
 }
 ```
 
-## Known Issues
-
-*   **`Entity` connections are not yet fully supported.** The parsing and serialization of connections might produce incorrect results.
-
 ## Contributing
 
 Contributions are welcome! Please feel free to open issues or submit pull requests.

@@ -10,7 +10,7 @@
 //! use std::fs::File;
 //!
 //! fn main() -> Result<(), VmfError> {
-//!     let mut file = File::open("your_map.vmf")?;
+//!     let mut file = File::open("vmf_examples/your_map.vmf")?;
 //!     let vmf_file = VmfFile::parse_file(&mut file)?;
 //!
 //!     println!("Map Version: {}", vmf_file.versioninfo.map_version);
@@ -18,8 +18,6 @@
 //!     Ok(())
 //! }
 //! ```
-
-#![warn(missing_docs)]
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
@@ -109,7 +107,7 @@ impl VmfFile {
     /// assert!(vmf_file.is_ok());
     /// ```
     pub fn parse(content: &str) -> VmfResult<Self> {
-        Ok(parser::parse_vmf(content)?)
+        parser::parse_vmf(content)
     }
 
     /// Parses a VMF file from a `File`.
