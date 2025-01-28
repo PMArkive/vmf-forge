@@ -1,6 +1,6 @@
 [package]
 name = "vmf-forge"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["laVashik <contact@lavashik.lol>"]
 description = "A parser for Valve Map Format (VMF) files"
@@ -15,9 +15,9 @@ categories = ["parser-implementations", "game-development"]
 [dependencies]
 pest = "2.7.15"
 pest_derive = "2.7.15"
-serde = { version = "1.0.211", features = ["derive"] }
-indexmap = { version = "2.7.0", features = ["serde"] }
-serde_json = "1.0.132"
+serde = { version = "1.0.217", features = ["derive"] }
+indexmap = { version = "2.7.1", features = ["serde"] }
+serde_json = "1.0.137"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
