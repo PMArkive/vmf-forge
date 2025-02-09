@@ -1,5 +1,7 @@
 //! This module provides structures for representing metadata blocks in a VMF file, such as version info, visgroups, and view settings.
 
+use derive_more::{Deref, DerefMut, IntoIterator};
+
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
@@ -10,7 +12,7 @@ use crate::{
 };
 
 /// Represents the version info of a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VersionInfo {
     /// The editor version.
     pub editor_version: i32,
@@ -90,9 +92,12 @@ impl VmfSerializable for VersionInfo {
 }
 
 /// Represents a collection of VisGroups in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut, IntoIterator,
+)]
 pub struct VisGroups {
     /// The list of VisGroups.
+    #[deref]
     pub groups: Vec<VisGroup>,
 }
 
@@ -147,7 +152,7 @@ impl VmfSerializable for VisGroups {
 }
 
 /// Represents a VisGroup in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VisGroup {
     /// The name of the VisGroup.
     pub name: String,
@@ -239,7 +244,7 @@ impl VmfSerializable for VisGroup {
 }
 
 /// Represents the view settings of a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ViewSettings {
     /// Whether snapping to the grid is enabled.
     pub snap_to_grid: bool,

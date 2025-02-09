@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Represents the world block in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct World {
     /// The key-value pairs associated with the world.
     pub key_values: IndexMap<String, String>,
@@ -124,7 +124,7 @@ impl VmfSerializable for World {
 }
 
 /// Represents a solid object in the VMF world.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Solid {
     /// The unique ID of the solid.
     pub id: u64,
@@ -207,7 +207,7 @@ impl VmfSerializable for Solid {
 }
 
 /// Represents a side of a solid object in the VMF world.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Side {
     /// The unique ID of the side.
     pub id: u32,
@@ -350,7 +350,7 @@ macro_rules! find_block {
 }
 
 /// Represents the displacement information for a side.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct DispInfo {
     /// The power of the displacement map (2, 3, or 4).
     pub power: u8,
@@ -582,7 +582,7 @@ impl DispInfo {
 }
 
 /// Represents rows of data for displacement information, such as normals, distances, offsets, etc.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct DispRows {
     /// The rows of data, each represented as a string.
     pub rows: Vec<String>,
@@ -659,7 +659,7 @@ impl DispRows {
 }
 
 /// Represents a group in the VMF world.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Group {
     /// The unique ID of the group.
     pub id: u32,

@@ -1,5 +1,5 @@
 <div>
-  <img align="left" style="margin-right: 20px;" src="https://i.imgur.com/5cKkQsj.png" alt="logo">
+  <img align="left" style="margin-right: 20px;" width="84px" src="https://i.imgur.com/5cKkQsj.png" alt="logo">
   <h1>VMF_Forge</h1>
 </div>
 
@@ -8,7 +8,7 @@
 [![Docs.rs](https://docs.rs/vmf-forge/badge.svg)](https://docs.rs/vmf-forge)
 ![License](https://img.shields.io/github/license/IaVashik/vmf-forge)
 
-`vmf-forge` is a Rust library for parsing, manipulating, and serializing Valve Map Format (VMF) files used in Source Engine games. This project is currently **work in progress**.
+`vmf-forge` is a Rust library for parsing, manipulating, and serializing Valve Map Format (VMF) files used in Source Engine games. 
 
 ## Features
 
@@ -22,7 +22,7 @@ Add `vmf-forge` to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-vmf-forge = "0.2.0"
+vmf-forge = "0.3.0"
 ```
 
 ## Usage Example

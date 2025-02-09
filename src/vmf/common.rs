@@ -11,7 +11,7 @@ use crate::{
 };
 
 /// Represents the editor data of a VMF entity or solid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Editor {
     /// The color of the entity in the editor, in "R G B" format.
     pub color: String,

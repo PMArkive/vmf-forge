@@ -4,18 +4,15 @@ use crate::{
     errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
 };
+use derive_more::{Deref, DerefMut, IntoIterator};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use std::{
-    ops::{Deref, DerefMut},
-    vec,
-};
 
 use super::common::Editor;
 use super::world::Solid;
 
 /// Represents an entity in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Entity {
     /// The key-value pairs associated with this entity.
     pub key_values: IndexMap<String, String>,
@@ -27,6 +24,205 @@ pub struct Entity {
     pub solids: Option<Vec<Solid>>,
     /// The editor data for this entity.
     pub editor: Editor,
+    /// Indicates if the entity is hidden within the editor.  This field
+    /// is primarily used when parsing a `hidden` block within a VMF file,
+    /// and is not serialized back when writing the VMF.
+    #[serde(default, skip_serializing)]
+    pub is_hidden: bool,
+}
+
+impl Entity {
+    /// Creates a new `Entity` with the specified classname and ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `classname` - The classname of the entity (e.g., "func_detail", "info_player_start").
+    /// * `id` - The unique ID of the entity.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use vmf_forge::prelude::*;
+    ///
+    /// let entity = Entity::new("info_player_start", 1);
+    /// assert_eq!(entity.classname(), Some("info_player_start"));
+    /// assert_eq!(entity.id(), 1);
+    /// ```
+    pub fn new(classname: impl Into<String>, id: u64) -> Self {
+        let mut key_values = IndexMap::new();
+        key_values.insert("classname".to_string(), classname.into());
+        key_values.insert("id".to_string(), id.to_string());
+        Entity {
+            key_values,
+            connections: None,
+            solids: None,
+            editor: Editor::default(),
+            is_hidden: false,
+        }
+    }
+
+    /// Sets a key-value pair for the entity.  If the key already exists,
+    /// its value is updated.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The key to set.
+    /// * `value` - The value to set for the key.
+    pub fn set(&mut self, key: String, value: String) {
+        self.key_values.insert(key, value);
+    }
+
+    /// Removes a key-value pair from the entity, preserving the order of other keys.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The key to remove.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the removed value, if the key was present.
+    pub fn remove_key(&mut self, key: &str) -> Option<String> {
+        self.key_values.shift_remove(key)
+    }
+
+    /// Removes a key-value pair from the entity, potentially changing the order of other keys.
+    /// This is faster than `remove_key` but does not preserve insertion order.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The key to remove.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the removed value, if the key was present.
+    pub fn swap_remove_key(&mut self, key: &str) -> Option<String> {
+        self.key_values.swap_remove(key)
+    }
+
+    /// Gets the value associated with the given key.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The key to get the value for.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the value, if the key is present.
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.key_values.get(key)
+    }
+
+    /// Gets a mutable reference to the value associated with the given key.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The key to get the value for.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a mutable reference to the value, if the key is present.
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut String> {
+        self.key_values.get_mut(key)
+    }
+
+    /// Returns the classname of the entity.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the classname, if it exists.
+    pub fn classname(&self) -> Option<&str> {
+        self.key_values.get("classname").map(|s| s.as_str())
+    }
+
+    /// Returns the targetname of the entity.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the targetname, if it exists.
+    pub fn targetname(&self) -> Option<&str> {
+        self.key_values.get("targetname").map(|s| s.as_str())
+    }
+
+    /// Returns the ID of the entity.
+    pub fn id(&self) -> u64 {
+        self.key_values
+            .get("id")
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap_or(0)
+    }
+
+    /// Returns the model of the entity.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the model path, if it exists.
+    pub fn model(&self) -> Option<&str> {
+        self.key_values.get("model").map(|s| s.as_str())
+    }
+
+    /// Adds an output connection to the entity.
+    ///
+    /// # Arguments
+    ///
+    /// * `output` - The name of the output on this entity.
+    /// * `target_entity` - The targetname of the entity to connect to.
+    /// * `input` - The name of the input on the target entity.
+    /// * `parms` - The parameters to pass to the input.
+    /// * `delay` - The delay before the input is triggered, in seconds.
+    /// * `fire_limit` - The number of times the output can be fired (-1 for unlimited).
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use vmf_forge::prelude::*;
+    ///
+    /// let mut entity = Entity::new("logic_relay", 1);
+    /// entity.add_connection("OnTrigger", "my_door", "Open", "", 0.0, -1);
+    /// ```
+    pub fn add_connection(
+        &mut self,
+        output: impl Into<String>,
+        target_entity: impl AsRef<str>,
+        input: impl AsRef<str>,
+        parms: impl AsRef<str>,
+        delay: f32,
+        fire_limit: i32,
+    ) {
+        let input_result = format!(
+            "{}\x1B{}\x1B{}\x1B{}\x1B{}",
+            target_entity.as_ref(),
+            input.as_ref(),
+            parms.as_ref(),
+            delay,
+            fire_limit
+        );
+        if let Some(connections) = &mut self.connections {
+            connections.push((output.into(), input_result));
+        } else {
+            self.connections = Some(vec![(output.into(), input_result)]);
+        }
+    }
+
+    /// Removes all connections from this entity.
+    pub fn clear_connections(&mut self) {
+        self.connections = None;
+    }
+
+    /// Checks if a specific connection exists.
+    ///
+    /// # Arguments
+    /// * `output` The output to check
+    /// * `input` The input to check
+    ///
+    /// # Returns
+    /// * `true` if the connection exists, `false` otherwise.
+    pub fn has_connection(&self, output: &str, input: &str) -> bool {
+        if let Some(connections) = &self.connections {
+            connections.iter().any(|(o, i)| o == output && i == input)
+        } else {
+            false
+        }
+    }
 }
 
 impl TryFrom<VmfBlock> for Entity {
@@ -124,24 +320,12 @@ impl VmfSerializable for Entity {
 }
 
 /// Represents a collection of entities in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(
+    Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut, IntoIterator,
+)]
 pub struct Entities {
     /// The vector of entities.
     pub vec: Vec<Entity>,
-}
-
-impl Deref for Entities {
-    type Target = Vec<Entity>;
-
-    fn deref(&self) -> &Self::Target {
-        &self.vec
-    }
-}
-
-impl DerefMut for Entities {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.vec
-    }
 }
 
 impl Entities {
@@ -241,6 +425,39 @@ impl Entities {
         model: &'a str,
     ) -> impl Iterator<Item = &'a mut Entity> + 'a {
         self.find_by_keyvalue_mut("model", model)
+    }
+
+    /// Removes an entity by its ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `entity_id` - The ID of the entity to remove.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing the removed `Entity`, if found. Returns `None`
+    /// if no entity with the given ID exists.
+    pub fn remove_entity(&mut self, entity_id: i32) -> Option<Entity> {
+        if let Some(index) = self
+            .vec
+            .iter()
+            .position(|e| e.key_values.get("id") == Some(&entity_id.to_string()))
+        {
+            Some(self.vec.remove(index))
+        } else {
+            None
+        }
+    }
+
+    /// Removes all entities that have a matching key-value pair.
+    ///
+    /// # Arguments
+    ///
+    /// * `key` - The key to check.
+    /// * `value` - The value to compare against.
+    pub fn remove_by_keyvalue(&mut self, key: &str, value: &str) {
+        self.vec
+            .retain(|ent| ent.key_values.get(key).map(|v| v != value).unwrap_or(true));
     }
 }
 

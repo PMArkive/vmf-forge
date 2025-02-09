@@ -24,6 +24,7 @@ use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
+use std::str::FromStr;
 
 pub mod parser;
 pub(crate) mod utils;
@@ -53,7 +54,7 @@ pub trait VmfSerializable {
 }
 
 /// Represents a parsed VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VmfFile {
     /// The path to the VMF file, if known.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -130,7 +131,7 @@ impl VmfFile {
     /// let vmf_file = VmfFile::parse_file(&mut file);
     /// assert!(vmf_file.is_ok());
     /// ```
-    pub fn parse_file(file: &mut File) -> VmfResult<Self> {
+    pub fn parse_file(file: &mut impl Read) -> VmfResult<Self> {
         let mut content = Vec::new();
         file.read_to_end(&mut content)?;
         let content = String::from_utf8_lossy(&content);
@@ -193,6 +194,43 @@ impl VmfFile {
         Ok(())
     }
 
+    /// Merges the contents of another `VmfFile` into this one.
+    ///
+    /// This method combines the `visgroups`, `world` solids (both visible and hidden),
+    /// `entities`, `hiddens`, and `cordons` from the `other` `VmfFile` into the
+    /// current `VmfFile`.  `versioninfo`, `viewsettings`, and `cameras` are
+    /// *not* merged; the original values in `self` are retained.
+    ///
+    /// This method is experimental and its behavior may change in future versions.
+    /// It does not handle potential ID conflicts between the two VMF files.
+    ///
+    /// # Arguments
+    ///
+    /// * `other` - The `VmfFile` to merge into this one.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// use vmf_forge::prelude::*;
+    ///
+    /// let mut vmf1 = VmfFile::open("map1.vmf").unwrap();
+    /// let vmf2 = VmfFile::open("map2.vmf").unwrap();
+    ///
+    /// vmf1.merge(vmf2);
+    ///
+    /// // vmf1 now contains the combined contents of both files.
+    /// ```
+    pub fn merge(&mut self, other: VmfFile) {
+        self.visgroups.groups.extend(other.visgroups.groups);
+        self.world.solids.extend(other.world.solids);
+        self.world.hidden.extend(other.world.hidden);
+
+        self.entities.extend(other.entities);
+        self.hiddens.extend(other.hiddens);
+
+        self.cordons.extend(other.cordons.cordons);
+    }
+
     /// Converts the `VmfFile` to a string in VMF format.
     ///
     /// # Returns
@@ -223,6 +261,14 @@ impl VmfFile {
         output.push_str(&self.cordons.to_vmf_string(0));
 
         output
+    }
+}
+
+impl FromStr for VmfFile {
+    type Err = VmfError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        VmfFile::parse(s)
     }
 }
 
