@@ -44,14 +44,14 @@ impl Entity {
     /// ```
     /// use vmf_forge::prelude::*;
     ///
-    /// let entity = Entity::new("info_player_start", "1");
+    /// let entity = Entity::new("info_player_start", 1);
     /// assert_eq!(entity.classname(), Some("info_player_start"));
-    /// assert_eq!(entity.id(), Some("1"));
+    /// assert_eq!(entity.id(), 1);
     /// ```
-    pub fn new(classname: impl Into<String>, id: impl Into<String>) -> Self {
+    pub fn new(classname: impl Into<String>, id: u64) -> Self {
         let mut key_values = IndexMap::new();
         key_values.insert("classname".to_string(), classname.into());
-        key_values.insert("id".to_string(), id.into());
+        key_values.insert("id".to_string(), id.to_string());
         Entity {
             key_values,
             connections: None,
@@ -144,11 +144,11 @@ impl Entity {
     }
 
     /// Returns the ID of the entity.
-    pub fn id(&self) -> i32 {
+    pub fn id(&self) -> u64 {
         self.key_values
             .get("id")
-            .and_then(|s| s.parse::<i32>().ok())
-            .unwrap_or(-1)
+            .and_then(|s| s.parse::<u64>().ok())
+            .unwrap_or(0)
     }
 
     /// Returns the model of the entity.
@@ -176,7 +176,7 @@ impl Entity {
     /// ```
     /// use vmf_forge::prelude::*;
     ///
-    /// let mut entity = Entity::new("logic_relay", "1");
+    /// let mut entity = Entity::new("logic_relay", 1);
     /// entity.add_connection("OnTrigger", "my_door", "Open", "", 0.0, -1);
     /// ```
     pub fn add_connection(
