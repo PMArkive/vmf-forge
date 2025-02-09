@@ -54,7 +54,7 @@ pub trait VmfSerializable {
 }
 
 /// Represents a parsed VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VmfFile {
     /// The path to the VMF file, if known.
     #[serde(default, skip_serializing_if = "Option::is_none")]

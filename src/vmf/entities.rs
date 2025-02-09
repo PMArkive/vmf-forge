@@ -12,7 +12,7 @@ use super::common::Editor;
 use super::world::Solid;
 
 /// Represents an entity in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Entity {
     /// The key-value pairs associated with this entity.
     pub key_values: IndexMap<String, String>,
@@ -320,7 +320,9 @@ impl VmfSerializable for Entity {
 }
 
 /// Represents a collection of entities in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Deref, DerefMut, IntoIterator)]
+#[derive(
+    Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut, IntoIterator,
+)]
 pub struct Entities {
     /// The vector of entities.
     pub vec: Vec<Entity>,
