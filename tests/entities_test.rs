@@ -108,6 +108,7 @@ mod tests {
                 color: "255 255 255".to_string(),
                 ..Default::default()
             },
+            is_hidden: false,
         };
 
         let expected = "\
@@ -141,6 +142,7 @@ mod tests {
                 color: "255 255 255".to_string(),
                 ..Default::default()
             },
+            is_hidden: false,
         };
 
         let block: VmfBlock = entity.into();
@@ -166,7 +168,7 @@ mod tests {
     #[test]
     fn test_entities_find_by_keyvalue() {
         let mut entities = Entities::default();
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("classname".to_string(), "entity1".to_string());
@@ -175,7 +177,7 @@ mod tests {
             },
             ..Default::default()
         });
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("classname".to_string(), "entity2".to_string());
@@ -184,7 +186,7 @@ mod tests {
             },
             ..Default::default()
         });
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("classname".to_string(), "entity1".to_string());
@@ -226,8 +228,8 @@ mod tests {
             },
             ..Default::default()
         };
-        entities.vec.push(entity1);
-        entities.vec.push(entity2);
+        entities.push(entity1);
+        entities.push(entity2);
 
         let found_entities: Vec<_> = entities
             .find_by_keyvalue_mut("classname", "entity1")
@@ -235,13 +237,13 @@ mod tests {
         assert_eq!(found_entities[0].key_values.get("key1").unwrap(), "value1");
         assert_eq!(found_entities.len(), 1);
 
-        assert_eq!(entities.vec[1].key_values.get("key1").unwrap(), "value2");
+        assert_eq!(entities[1].key_values.get("key1").unwrap(), "value2");
     }
 
     #[test]
     fn test_entities_find_by_classname() {
         let mut entities = Entities::default();
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("classname".to_string(), "info_player_start".to_string());
@@ -249,7 +251,7 @@ mod tests {
             },
             ..Default::default()
         });
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("classname".to_string(), "entity2".to_string());
@@ -266,7 +268,7 @@ mod tests {
     #[test]
     fn test_entities_find_by_name() {
         let mut entities = Entities::default();
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("targetname".to_string(), "my_entity".to_string());
@@ -274,7 +276,7 @@ mod tests {
             },
             ..Default::default()
         });
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("targetname".to_string(), "another_entity".to_string());
@@ -290,7 +292,7 @@ mod tests {
     #[test]
     fn test_entities_find_by_classname_mut() {
         let mut entities = Entities::default();
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("classname".to_string(), "info_player_start".to_string());
@@ -307,7 +309,7 @@ mod tests {
     #[test]
     fn test_entities_find_by_name_mut() {
         let mut entities = Entities::default();
-        entities.vec.push(Entity {
+        entities.push(Entity {
             key_values: {
                 let mut map = IndexMap::new();
                 map.insert("targetname".to_string(), "my_entity".to_string());
@@ -355,6 +357,7 @@ mod tests {
                 logical_pos: Some("[0 -5268]".to_string()),
                 ..Default::default()
             },
+            is_hidden: false,
         };
 
         let expected = "\
@@ -379,5 +382,178 @@ mod tests {
         }\n";
 
         assert_eq!(entity.to_vmf_string(0), expected);
+    }
+
+    // NEW tests (ver 3)
+    #[test]
+    fn entity_new() {
+        let entity = Entity::new("info_player_start", 1);
+        assert_eq!(entity.classname(), Some("info_player_start"));
+        assert_eq!(entity.id(), 1);
+        assert!(entity.connections.is_none());
+        assert!(entity.solids.is_none());
+        assert_eq!(entity.editor.color, "255 255 255"); // Check default editor
+        assert!(!entity.is_hidden);
+    }
+
+    #[test]
+    fn entity_set() {
+        let mut entity = Entity::new("info_player_start", 1);
+        entity.set("targetname".to_string(), "my_player_start".to_string());
+        assert_eq!(entity.targetname(), Some("my_player_start"));
+
+        entity.set("origin".to_string(), "10 20 30".to_string());
+        assert_eq!(entity.get("origin"), Some(&"10 20 30".to_string()));
+    }
+
+    #[test]
+    fn entity_remove_key() {
+        let mut entity = Entity::new("info_player_start", 1);
+        entity.set("targetname".to_string(), "my_player_start".to_string());
+
+        let removed_value = entity.remove_key("targetname");
+        assert_eq!(removed_value, Some("my_player_start".to_string()));
+        assert!(entity.targetname().is_none());
+
+        let none_value = entity.remove_key("nonexistent_key");
+        assert!(none_value.is_none());
+    }
+
+    #[test]
+    fn entity_swap_remove_key() {
+        let mut entity = Entity::new("info_player_start", 1);
+        entity.set("targetname".to_string(), "my_player_start".to_string());
+
+        let removed_value = entity.swap_remove_key("targetname");
+        assert_eq!(removed_value, Some("my_player_start".to_string()));
+        assert!(entity.targetname().is_none());
+
+        let none_value = entity.swap_remove_key("nonexistent_key");
+        assert!(none_value.is_none());
+    }
+
+    #[test]
+    fn entity_get() {
+        let mut entity = Entity::new("info_player_start", 1);
+        entity.set("targetname".to_string(), "my_player_start".to_string());
+
+        assert_eq!(
+            entity.get("targetname"),
+            Some(&"my_player_start".to_string())
+        );
+        assert!(entity.get("nonexistent_key").is_none());
+    }
+
+    #[test]
+    fn entity_get_mut() {
+        let mut entity = Entity::new("info_player_start", 1);
+        entity.set("targetname".to_string(), "my_player_start".to_string());
+
+        if let Some(targetname) = entity.get_mut("targetname") {
+            *targetname = "new_targetname".to_string();
+        }
+
+        assert_eq!(entity.targetname(), Some("new_targetname"));
+        assert!(entity.get_mut("nonexistent_key").is_none());
+    }
+
+    #[test]
+    fn entity_classname_targetname_id_model() {
+        let mut entity = Entity::new("info_player_start", 1);
+        entity.set("targetname".to_string(), "my_player_start".to_string());
+        entity.set("model".to_string(), "*1".to_string());
+
+        assert_eq!(entity.classname(), Some("info_player_start"));
+        assert_eq!(entity.targetname(), Some("my_player_start"));
+        assert_eq!(entity.id(), 1);
+        assert_eq!(entity.model(), Some("*1"));
+
+        let mut entity2 = Entity::new("func_brush", 2); // different classname
+        entity2.set("targetname".to_string(), "my_brush".to_string());
+        assert_eq!(entity2.classname(), Some("func_brush"));
+    }
+
+    #[test]
+    fn entity_add_connection() {
+        let mut entity = Entity::new("logic_relay", 1);
+        entity.add_connection("OnTrigger", "my_door", "Open", "", 0.0, -1);
+        entity.add_connection("OnTrigger", "my_sound", "PlaySound", "bang", 0.5, 1);
+
+        assert!(entity.connections.is_some());
+        let connections = entity.connections.unwrap();
+        assert_eq!(connections.len(), 2);
+        assert_eq!(
+            connections[0],
+            ("OnTrigger".to_string(), "my_door\x1BOpen\x1B\x1B0\x1B-1".to_string())
+        );
+        assert_eq!(
+            connections[1],
+            (
+                "OnTrigger".to_string(),
+                "my_sound\x1BPlaySound\x1Bbang\x1B0.5\x1B1".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn entity_has_connection() {
+        let mut entity = Entity::new("logic_relay", 1);
+        entity.add_connection("OnTrigger", "my_door", "Open", "", 0.0, -1);
+
+        assert!(entity.has_connection("OnTrigger", "my_door\x1BOpen\x1B\x1B0\x1B-1"));
+        assert!(!entity.has_connection("OnTrigger", "my_door\x1BClose\x1B\x1B0\x1B-1"));
+        assert!(!entity.has_connection("OnStartTouch", "my_door\x1BOpen\x1B\x1B0\x1B-1"));
+    }
+
+    #[test]
+    fn entity_clear_connections() {
+        let mut entity = Entity::new("logic_relay", 1);
+        entity.add_connection("OnTrigger", "my_door", "Open", "", 0.0, -1);
+        entity.clear_connections();
+        assert!(entity.connections.is_none());
+    }
+
+    // Tests for Entities (the collection)
+
+    #[test]
+    fn entities_remove_entity() {
+        let mut entities = Entities::default();
+        let entity1 = Entity::new("info_player_start", 1);
+        let entity2 = Entity::new("func_detail", 2);
+        entities.push(entity1.clone());
+        entities.push(entity2);
+
+        let removed_entity = entities.remove_entity(1);
+        assert_eq!(removed_entity, Some(entity1));
+        assert_eq!(entities.len(), 1);
+
+        let non_existent = entities.remove_entity(3);
+        assert!(non_existent.is_none());
+    }
+
+    #[test]
+    fn test_remove_by_keyvalue() {
+        let mut entities = Entities::default();
+        entities.push(Entity::new("info_player_start", 1));
+        entities.push(Entity::new("info_player_deathmatch", 2));
+        entities.push(Entity::new("info_player_start", 3));
+
+        entities.remove_by_keyvalue("classname", "info_player_start");
+        assert_eq!(entities.len(), 1);
+        assert_eq!(entities[0].id(), 2);
+    }
+
+    #[test]
+    fn remove_by_keyvalue_no_match() {
+        let mut entities = Entities::default();
+        entities.push(Entity::new("info_player_start", 1));
+        entities.remove_by_keyvalue("classname", "func_door"); // No entities with this classname
+        assert_eq!(entities.len(), 1);
+    }
+    #[test]
+    fn remove_by_keyvalue_empty() {
+        let mut entities = Entities::default();
+        entities.remove_by_keyvalue("classname", "anything"); // Should not panic
+        assert_eq!(entities.len(), 0);
     }
 }
