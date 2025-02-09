@@ -1,6 +1,6 @@
 [package]
 name = "vmf-forge"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["laVashik <contact@lavashik.lol>"]
 description = "A parser for Valve Map Format (VMF) files"
