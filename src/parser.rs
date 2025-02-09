@@ -42,13 +42,12 @@ pub fn parse_vmf(input: &str) -> VmfResult<VmfFile> {
                 "world" => vmf_file.world = World::try_from(block)?,
 
                 // -- entities
-                "entity" => vmf_file.entities.vec.push(Entity::try_from(block)?),
+                "entity" => vmf_file.entities.push(Entity::try_from(block)?),
                 "hidden" => {
                     if let Some(hidden_block) = block.blocks.first() {
-                        vmf_file
-                            .hiddens
-                            .vec
-                            .push(Entity::try_from(hidden_block.to_owned())?)
+                        let mut ent = Entity::try_from(hidden_block.to_owned())?;
+                        ent.is_hidden = true;
+                        vmf_file.hiddens.push(ent)
                     }
                 }
 
@@ -56,7 +55,7 @@ pub fn parse_vmf(input: &str) -> VmfResult<VmfFile> {
                 "cameras" => vmf_file.cameras = Cameras::try_from(block)?,
                 "cordons" => vmf_file.cordons = Cordons::try_from(block)?,
                 // for old version of VMF
-                "cordon" => vmf_file.cordons.cordons.push(Cordon::try_from(block)?),
+                "cordon" => vmf_file.cordons.push(Cordon::try_from(block)?),
                 // ....
                 _ => {
                     #[cfg(feature = "debug_assert_info")]

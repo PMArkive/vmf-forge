@@ -2,6 +2,7 @@
 
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
+use derive_more::{Deref, DerefMut};
 
 use crate::utils::{get_key, parse_hs_key, To01String};
 use crate::{
@@ -10,11 +11,13 @@ use crate::{
 };
 
 /// Represents the camera data in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Deref, DerefMut)]
 pub struct Cameras {
     /// The index of the active camera.
     pub active: i8,
     /// The list of cameras.
+    #[deref]
+    #[deref_mut]
     pub cams: Vec<Camera>,
 }
 
@@ -114,11 +117,13 @@ impl From<Camera> for VmfBlock {
 }
 
 /// Represents the cordons data in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Deref, DerefMut)]
 pub struct Cordons {
     /// The index of the active cordon.
     pub active: i8,
     /// The list of cordons.
+    #[deref]
+    #[deref_mut]
     pub cordons: Vec<Cordon>,
 }
 
