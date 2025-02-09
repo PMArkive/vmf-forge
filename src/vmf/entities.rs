@@ -4,9 +4,9 @@ use crate::{
     errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
 };
+use derive_more::{Deref, DerefMut, IntoIterator};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use derive_more::{Deref, DerefMut, IntoIterator};
 
 use super::common::Editor;
 use super::world::Solid;
@@ -145,7 +145,10 @@ impl Entity {
 
     /// Returns the ID of the entity.
     pub fn id(&self) -> i32 {
-        self.key_values.get("id").and_then(|s| s.parse::<i32>().ok()).unwrap_or(-1)
+        self.key_values
+            .get("id")
+            .and_then(|s| s.parse::<i32>().ok())
+            .unwrap_or(-1)
     }
 
     /// Returns the model of the entity.
@@ -216,7 +219,7 @@ impl Entity {
     pub fn has_connection(&self, output: &str, input: &str) -> bool {
         if let Some(connections) = &self.connections {
             connections.iter().any(|(o, i)| o == output && i == input)
-        }else{
+        } else {
             false
         }
     }
@@ -433,7 +436,11 @@ impl Entities {
     /// An `Option` containing the removed `Entity`, if found. Returns `None`
     /// if no entity with the given ID exists.
     pub fn remove_entity(&mut self, entity_id: i32) -> Option<Entity> {
-        if let Some(index) = self.vec.iter().position(|e| e.key_values.get("id") == Some(&entity_id.to_string())) {
+        if let Some(index) = self
+            .vec
+            .iter()
+            .position(|e| e.key_values.get("id") == Some(&entity_id.to_string()))
+        {
             Some(self.vec.remove(index))
         } else {
             None
@@ -447,10 +454,10 @@ impl Entities {
     /// * `key` - The key to check.
     /// * `value` - The value to compare against.
     pub fn remove_by_keyvalue(&mut self, key: &str, value: &str) {
-        self.vec.retain(|ent| ent.key_values.get(key).map(|v| v != value).unwrap_or(true));
+        self.vec
+            .retain(|ent| ent.key_values.get(key).map(|v| v != value).unwrap_or(true));
     }
 }
-
 
 // utils func
 fn process_connections(map: IndexMap<String, String>) -> Option<Vec<(String, String)>> {

@@ -1,8 +1,8 @@
 //! This module provides structures for representing region-specific data in a VMF file, such as cameras and cordons.
 
+use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
-use derive_more::{Deref, DerefMut};
 
 use crate::utils::{get_key, parse_hs_key, To01String};
 use crate::{
