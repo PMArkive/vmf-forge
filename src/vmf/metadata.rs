@@ -244,7 +244,7 @@ impl VmfSerializable for VisGroup {
 }
 
 /// Represents the view settings of a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct ViewSettings {
     /// Whether snapping to the grid is enabled.
     pub snap_to_grid: bool,
@@ -256,6 +256,18 @@ pub struct ViewSettings {
     pub grid_spacing: u16,
     /// Whether the 3D grid is shown in the editor.
     pub show_3d_grid: bool,
+}
+
+impl Default for ViewSettings {
+    fn default() -> Self {
+        Self {
+            snap_to_grid: true,
+            show_grid: true,
+            show_logical_grid: false,
+            grid_spacing: 8,
+            show_3d_grid: false,
+        }
+    }
 }
 
 impl TryFrom<VmfBlock> for ViewSettings {

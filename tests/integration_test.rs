@@ -79,8 +79,8 @@ mod tests {
         \t\teditor\n\
         \t\t{\n\
         \t\t\t\"color\" \"255 255 255\"\n\
-        \t\t\t\"visgroupshown\" \"0\"\n\
-        \t\t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\t\"visgroupshown\" \"1\"\n\
+        \t\t\t\"visgroupautoshown\" \"1\"\n\
         \t\t}\n\
         \t}\n\
         }\n\

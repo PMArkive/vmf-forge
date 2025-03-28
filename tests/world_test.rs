@@ -142,8 +142,8 @@ mod tests {
         \t\teditor\n\
         \t\t{\n\
         \t\t\t\"color\" \"255 255 255\"\n\
-        \t\t\t\"visgroupshown\" \"0\"\n\
-        \t\t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\t\"visgroupshown\" \"1\"\n\
+        \t\t\t\"visgroupautoshown\" \"1\"\n\
         \t\t}\n\
         \t}\n\
         \tsolid\n\
@@ -152,8 +152,8 @@ mod tests {
         \t\teditor\n\
         \t\t{\n\
           \t\t\t\"color\" \"255 255 255\"\n\
-         \t\t\t\"visgroupshown\" \"0\"\n\
-        \t\t\t\"visgroupautoshown\" \"0\"\n\
+         \t\t\t\"visgroupshown\" \"1\"\n\
+        \t\t\t\"visgroupautoshown\" \"1\"\n\
         \t\t}\n\
         \t}\n\
         \tHidden\n\
@@ -164,8 +164,8 @@ mod tests {
          \t\t\teditor\n\
         \t\t\t{\n\
           \t\t\t\t\"color\" \"255 255 255\"\n\
-        \t\t\t\t\"visgroupshown\" \"0\"\n\
-        \t\t\t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\t\t\"visgroupshown\" \"1\"\n\
+        \t\t\t\t\"visgroupautoshown\" \"1\"\n\
         \t\t\t}\n\
         \t\t}\n\
         \t}\n\
@@ -175,8 +175,8 @@ mod tests {
          \t\teditor\n\
         \t\t{\n\
          \t\t\t\"color\" \"255 255 255\"\n\
-        \t\t\t\"visgroupshown\" \"0\"\n\
-        \t\t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\t\"visgroupshown\" \"1\"\n\
+        \t\t\t\"visgroupautoshown\" \"1\"\n\
         \t\t}\n\
         \t}\n\
         }\n";
@@ -287,8 +287,8 @@ mod tests {
         \teditor\n\
         \t{\n\
         \t\t\"color\" \"255 255 255\"\n\
-        \t\t\"visgroupshown\" \"0\"\n\
-        \t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\"visgroupshown\" \"1\"\n\
+        \t\t\"visgroupautoshown\" \"1\"\n\
         \t}\n\
         }\n";
         assert_eq!(solid.to_vmf_string(0), expected);
@@ -506,8 +506,8 @@ mod tests {
         \teditor\n\
         \t{\n\
         \t\t\"color\" \"255 255 255\"\n\
-        \t\t\"visgroupshown\" \"0\"\n\
-        \t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\"visgroupshown\" \"1\"\n\
+        \t\t\"visgroupautoshown\" \"1\"\n\
         \t}\n\
         }\n";
         assert_eq!(group.to_vmf_string(0), expected);

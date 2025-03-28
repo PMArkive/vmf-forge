@@ -119,8 +119,8 @@ mod tests {
         \teditor\n\
         \t{\n\
         \t\t\"color\" \"255 255 255\"\n\
-        \t\t\"visgroupshown\" \"0\"\n\
-        \t\t\"visgroupautoshown\" \"0\"\n\
+        \t\t\"visgroupshown\" \"1\"\n\
+        \t\t\"visgroupautoshown\" \"1\"\n\
         \t}\n\
         }\n";
 

@@ -39,8 +39,8 @@ impl Default for Editor {
             color: "255 255 255".to_string(),
             visgroup_id: None,
             group_id: None,
-            visgroup_shown: false,
-            visgroup_auto_shown: false,
+            visgroup_shown: true,
+            visgroup_auto_shown: true,
             comments: None,
             logical_pos: None,
         }
