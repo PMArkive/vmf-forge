@@ -59,8 +59,9 @@ macro_rules! parse_hs_key {
         $map.get($key)
             .ok_or_else(|| VmfError::InvalidFormat(format!("{} key not found", $key)))
             .and_then(|value| {
-                value.parse::<$type>().map_err(|e| {
-                    VmfError::ParseInt(e, format!("{} (in key {})", $key, stringify!($type)))
+                value.parse::<$type>().map_err(|e| VmfError::ParseInt {
+                    source: e,
+                    key: $key.to_string(),
                 })
             })
     };
@@ -129,7 +130,7 @@ mod tests {
         map.insert("test_key".to_string(), "abc".to_string());
 
         let result = parse_hs_key!(map, "test_key", i32);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt { key: _, source: _ })));
     }
 
     #[test]

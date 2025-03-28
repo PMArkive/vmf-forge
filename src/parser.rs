@@ -25,7 +25,10 @@ struct VmfParser;
 ///
 /// A `VmfResult` containing the parsed `VmfFile` or a `VmfError` if parsing fails.
 pub fn parse_vmf(input: &str) -> VmfResult<VmfFile> {
-    let parsed = VmfParser::parse(Rule::file, input)?.next().unwrap();
+    let parsed = VmfParser::parse(Rule::file, input)
+        .map_err(|e| VmfError::Parse(Box::new(e)))?
+        .next()
+        .unwrap(); // ok_or_else(|| VmfError::InvalidFormat("Input string did not contain a valid VMF file structure.".to_string()))?
     let mut vmf_file = VmfFile::default();
 
     for pair in parsed.into_inner() {

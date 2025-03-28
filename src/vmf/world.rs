@@ -410,7 +410,8 @@ impl TryFrom<VmfBlock> for DispInfo {
             power: parse_hs_key!(kv, "power", u8)?,
             start_position: get_key!(kv, "startposition")?.to_string(),
             flags: get_key!(kv, "flags", "_".into()).parse().ok(),
-            elevation: get_key!(kv, "elevation")?.parse()?,
+            elevation: get_key!(kv, "elevation")?.parse()
+                .map_err(|e| VmfError::ParseFloat {source: e, key: "elevation".to_string()})?,
             subdiv: get_key!(kv, "subdiv")? == "1",
             normals: DispRows::try_from(normals_block.clone())?,
             distances: DispRows::try_from(distances_block.clone())?,
@@ -521,7 +522,7 @@ impl DispInfo {
                 .split_whitespace()
                 .map(|s| {
                     s.parse::<i32>()
-                        .map_err(|e| VmfError::ParseInt(e, s.to_string()))
+                        .map_err(|e| VmfError::ParseInt { source: e, key: s.to_string()})
                 })
                 .collect();
             allowed_verts.insert(key.clone(), verts?);
@@ -611,7 +612,7 @@ impl TryFrom<VmfBlock> for DispRows {
             if let Some(stripped_idx) = key.strip_prefix("row") {
                 let index = stripped_idx
                     .parse::<usize>()
-                    .map_err(|e| VmfError::ParseInt(e, key.to_string()))?;
+                    .map_err(|e| VmfError::ParseInt { source: e, key: key.to_string() })?;
                 if index >= rows.len() {
                     rows.resize(index + 1, String::new());
                 }
