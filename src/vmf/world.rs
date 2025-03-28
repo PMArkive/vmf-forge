@@ -385,11 +385,25 @@ impl TryFrom<VmfBlock> for DispInfo {
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
         let normals_block = find_block!(block.blocks, "normals");
         let distances_block = find_block!(block.blocks, "distances");
-        let offsets_block = find_block!(block.blocks, "offsets");
-        let offset_normals_block = find_block!(block.blocks, "offset_normals");
         let alphas_block = find_block!(block.blocks, "alphas");
         let triangle_tags_block = find_block!(block.blocks, "triangle_tags");
         let allowed_verts_block = find_block!(block.blocks, "allowed_verts");
+
+        // These blocks may not be present in the decompiled vmf. Why?
+        let offsets = block.blocks.iter()
+            .find(|b| b.name == "offsets")
+            .map_or_else(
+                || Ok(DispRows::default()),
+                |b| DispRows::try_from(b.clone())
+            )?;
+
+        let offset_normals = block.blocks.iter()
+            .find(|b| b.name == "offset_normals")
+            .map_or_else(
+                || Ok(DispRows::default()),
+                |b| DispRows::try_from(b.clone())
+            )?;
+
 
         let kv = &block.key_values;
         Ok(DispInfo {
@@ -400,8 +414,8 @@ impl TryFrom<VmfBlock> for DispInfo {
             subdiv: get_key!(kv, "subdiv")? == "1",
             normals: DispRows::try_from(normals_block.clone())?,
             distances: DispRows::try_from(distances_block.clone())?,
-            offsets: DispRows::try_from(offsets_block.clone())?,
-            offset_normals: DispRows::try_from(offset_normals_block.clone())?,
+            offsets,
+            offset_normals,
             alphas: DispRows::try_from(alphas_block.clone())?,
             triangle_tags: DispRows::try_from(triangle_tags_block.clone())?,
             allowed_verts: DispInfo::parse_allowed_verts(allowed_verts_block)?,
