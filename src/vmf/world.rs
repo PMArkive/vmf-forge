@@ -4,7 +4,7 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use super::common::Editor;
-use crate::utils::{get_key, parse_hs_key, To01String};
+use crate::utils::{get_key_ref, take_and_parse_key, take_key_owned, To01String};
 use crate::{
     errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
@@ -140,9 +140,9 @@ pub struct Solid {
 impl TryFrom<VmfBlock> for Solid {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
         let mut solid = Solid {
-            id: parse_hs_key!(&block.key_values, "id", u64)?,
+            id: take_and_parse_key::<u64>(&mut block.key_values, "id")?,
             sides: Vec::with_capacity(4),
             ..Default::default()
         };
@@ -241,28 +241,43 @@ impl TryFrom<VmfBlock> for Side {
     type Error = VmfError;
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
-        let kv = &block.key_values;
+        let kv = &mut block.key_values;
+        // Use iter_mut().find() to get a mutable reference without consuming the vector yet
+        // We'll use mem::take later if found.
         let dispinfo_block = block.blocks.iter_mut().find(|b| b.name == "dispinfo");
 
-        let plane = get_key!(kv, "plane")?.to_string();
-        let material = get_key!(kv, "material")?.to_string();
-        let u_axis = get_key!(kv, "uaxis")?.to_string();
-        let v_axis = get_key!(kv, "vaxis")?.to_string();
+        // Take ownership of required String fields
+        let plane = take_key_owned(kv, "plane")?;
+        let material = take_key_owned(kv, "material")?;
+        let u_axis = take_key_owned(kv, "uaxis")?;
+        let v_axis = take_key_owned(kv, "vaxis")?;
+
+        // Parse required numeric fields, taking ownership
+        let id = take_and_parse_key::<u32>(kv, "id")?;
+        let lightmap_scale = take_and_parse_key::<u16>(kv, "lightmapscale")?;
+        let smoothing_groups = take_and_parse_key::<i32>(kv, "smoothing_groups")?;
+
+        // Parse optional numeric fields using .ok()
+        // This will consume the key if present and parseable, otherwise yield None
+        let rotation = take_and_parse_key::<f32>(kv, "rotation").ok();
+        let flags = take_and_parse_key::<u32>(kv, "flags").ok();
+
+        let dispinfo = match dispinfo_block {
+            Some(block) => Some(DispInfo::try_from(mem::take(block))?),
+            None => None,
+        };
 
         Ok(Side {
-            id: parse_hs_key!(kv, "id", u32)?,
+            id,
             plane,
             material,
             u_axis,
             v_axis,
-            rotation: get_key!(kv, "rotation", "_".into()).parse().ok(),
-            lightmap_scale: parse_hs_key!(kv, "lightmapscale", u16)?,
-            smoothing_groups: parse_hs_key!(kv, "smoothing_groups", i32)?,
-            flags: get_key!(kv, "flags", "_".into()).parse().ok(),
-            dispinfo: match dispinfo_block {
-                Some(block) => Some(DispInfo::try_from(mem::take(block))?),
-                None => None,
-            },
+            rotation,
+            lightmap_scale,
+            smoothing_groups,
+            flags,
+            dispinfo,
         })
     }
 }
@@ -359,7 +374,8 @@ impl VmfSerializable for Side {
 fn take_block(blocks: &mut Vec<VmfBlock>, name: &str) -> VmfResult<VmfBlock> {
     let index = blocks.iter().position(|b| b.name == name);
     match index {
-        Some(idx) => Ok(mem::take(&mut blocks[idx])),
+        // Some(idx) => Ok(mem::take(&mut blocks[idx])),
+        Some(idx) => Ok(blocks.swap_remove(idx)),
         None => Err(
             VmfError::InvalidFormat(format!("Missing {} block in dispinfo", name))
         )
@@ -401,6 +417,7 @@ impl TryFrom<VmfBlock> for DispInfo {
     type Error = VmfError;
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        // Extract required child blocks first, consuming them from block.blocks
         let normals_block = take_block(&mut block.blocks, "normals")?;
         let distances_block = take_block(&mut block.blocks, "distances")?;
         let alphas_block = take_block(&mut block.blocks, "alphas")?;
@@ -422,22 +439,35 @@ impl TryFrom<VmfBlock> for DispInfo {
                 |b| DispRows::try_from(mem::take(b))
             )?;
 
+        // Extract key-values from the parent dispinfo block
+        let kv = &mut block.key_values;
+        let power = take_and_parse_key::<u8>(kv, "power")?;
+        let start_position = take_key_owned(kv, "startposition")?;
+        let flags = take_and_parse_key::<u32>(kv, "flags").ok();
+        let elevation = take_and_parse_key::<f32>(kv, "elevation")?;
+        let subdiv = get_key_ref(kv, "subdiv")? == "1";
 
-        let kv = &block.key_values;
+        // Convert extracted blocks
+        let normals = DispRows::try_from(normals_block)?;
+        let distances = DispRows::try_from(distances_block)?;
+        let alphas = DispRows::try_from(alphas_block)?;
+        let triangle_tags = DispRows::try_from(triangle_tags_block)?;
+        let allowed_verts = DispInfo::parse_allowed_verts(allowed_verts_block)?;
+
+
         Ok(DispInfo {
-            power: parse_hs_key!(kv, "power", u8)?,
-            start_position: get_key!(kv, "startposition")?.to_string(),
-            flags: get_key!(kv, "flags", "_".into()).parse().ok(),
-            elevation: get_key!(kv, "elevation")?.parse()
-                .map_err(|e| VmfError::ParseFloat {source: e, key: "elevation".to_string()})?,
-            subdiv: get_key!(kv, "subdiv")? == "1",
-            normals: DispRows::try_from(normals_block)?,
-            distances: DispRows::try_from(distances_block)?,
-            offsets,
+            power,
+            start_position,
+            flags,
+            elevation,
+            subdiv,
+            normals,
+            distances,
+            offsets, 
             offset_normals,
-            alphas: DispRows::try_from(alphas_block)?,
-            triangle_tags: DispRows::try_from(triangle_tags_block)?,
-            allowed_verts: DispInfo::parse_allowed_verts(allowed_verts_block)?,
+            alphas,
+            triangle_tags,
+            allowed_verts,
         })
     }
 }
@@ -535,7 +565,7 @@ impl DispInfo {
     /// A `Result` containing an `IndexMap` of allowed vertices, or a `VmfError` if parsing fails.
     fn parse_allowed_verts(block: VmfBlock) -> VmfResult<IndexMap<String, Vec<i32>>> {
         let mut allowed_verts = IndexMap::new();
-        for (key, value) in block.key_values {
+        for (key, value) in block.key_values.into_iter() {
             let verts: VmfResult<Vec<i32>> = value
                 .split_whitespace()
                 .map(|s| {
@@ -703,7 +733,7 @@ pub struct Group {
 impl TryFrom<VmfBlock> for Group {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
         let mut editor = None;
         for inner_block in block.blocks {
             if inner_block.name.eq_ignore_ascii_case("editor") {
@@ -712,7 +742,7 @@ impl TryFrom<VmfBlock> for Group {
         }
 
         Ok(Self {
-            id: parse_hs_key!(&block.key_values, "id", u32)?,
+            id: take_and_parse_key::<u32>(&mut block.key_values, "id")?,
             editor: editor.unwrap_or_default(),
         })
     }

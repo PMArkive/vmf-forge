@@ -5,7 +5,7 @@ use derive_more::{Deref, DerefMut, IntoIterator};
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{get_key, parse_hs_key, To01String};
+use crate::utils::{get_key_ref, take_and_parse_key, take_key_owned, To01String};
 use crate::{
     errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
@@ -29,14 +29,14 @@ pub struct VersionInfo {
 impl TryFrom<VmfBlock> for VersionInfo {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let kv = &block.key_values;
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
         Ok(Self {
-            editor_version: parse_hs_key!(kv, "editorversion", i32)?,
-            editor_build: parse_hs_key!(kv, "editorbuild", i32)?,
-            map_version: parse_hs_key!(kv, "mapversion", i32)?,
-            format_version: parse_hs_key!(kv, "formatversion", i32)?,
-            prefab: get_key!(kv, "prefab")? == "1",
+            editor_version: take_and_parse_key::<i32>(kv, "editorversion")?, 
+            editor_build: take_and_parse_key::<i32>(kv, "editorbuild")?,
+            map_version: take_and_parse_key::<i32>(kv, "mapversion")?,
+            format_version: take_and_parse_key::<i32>(kv, "formatversion")?,
+            prefab: get_key_ref(kv, "prefab")? == "1",
         })
     }
 }
@@ -168,7 +168,7 @@ pub struct VisGroup {
 impl TryFrom<VmfBlock> for VisGroup {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
         let children = if block.blocks.is_empty() {
             None
         } else {
@@ -181,10 +181,11 @@ impl TryFrom<VmfBlock> for VisGroup {
             )
         };
 
+        let kv = &mut block.key_values;
         Ok(Self {
-            name: get_key!(block.key_values, "name")?.to_owned(),
-            id: parse_hs_key!(block.key_values, "visgroupid", i32)?,
-            color: get_key!(block.key_values, "color")?.to_owned(),
+            name: take_key_owned(kv, "name")?,
+            id: take_and_parse_key::<i32>(kv, "visgroupid")?,
+            color: take_key_owned(kv, "color")?,
             children,
         })
     }
@@ -273,15 +274,15 @@ impl Default for ViewSettings {
 impl TryFrom<VmfBlock> for ViewSettings {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
+
         Ok(Self {
-            snap_to_grid: get_key!(&block.key_values, "bSnapToGrid")? == "1",
-            show_grid: get_key!(&block.key_values, "bShowGrid")? == "1",
-            show_logical_grid: get_key!(&block.key_values, "bShowLogicalGrid")? == "1",
-            grid_spacing: get_key!(&block.key_values, "nGridSpacing")?
-                .parse()
-                .unwrap_or(64),
-            show_3d_grid: get_key!(&block.key_values, "bShow3DGrid", "0".into()) == "1",
+            snap_to_grid: get_key_ref(kv, "bSnapToGrid")? == "1",
+            show_grid: get_key_ref(kv, "bShowGrid")? == "1",
+            show_logical_grid: get_key_ref(kv, "bShowLogicalGrid")? == "1",
+            grid_spacing: take_and_parse_key::<u16>(kv, "nGridSpacing").unwrap_or(64),
+            show_3d_grid: get_key_ref(kv, "bShow3DGrid").map_or("0", |v| v) == "1",
         })
     }
 }

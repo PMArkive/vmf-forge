@@ -262,6 +262,9 @@ impl VmfFile {
 
         output
     }
+
+    // fn set_world() {}
+    // fn add_entity() {}
 }
 
 impl FromStr for VmfFile {
@@ -273,12 +276,12 @@ impl FromStr for VmfFile {
 }
 
 /// Represents a block in a VMF file, which can contain key-value pairs and other blocks.
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default)]
 pub struct VmfBlock {
     /// The name of the block.
     pub name: String,
     /// The key-value pairs in the block.
-    pub key_values: IndexMap<String, String>,
+    pub key_values: IndexMap<String, String>, // what if Cow?!
     /// The child blocks contained within this block.
     pub blocks: Vec<VmfBlock>,
 }

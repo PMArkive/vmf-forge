@@ -3,7 +3,7 @@
 use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{get_key, parse_hs_key};
+use crate::utils::{get_key_ref, take_and_parse_key, take_key_or_default};
 use crate::{
     errors::{VmfError, VmfResult},
     utils::To01String,
@@ -50,17 +50,17 @@ impl Default for Editor {
 impl TryFrom<VmfBlock> for Editor {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let kv = &block.key_values;
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
 
         Ok(Self {
-            color: get_key!(kv, "color", "255 255 255".to_string()),
-            visgroup_id: parse_hs_key!(kv, "visgroupid", i32).ok(),
-            group_id: parse_hs_key!(kv, "groupid", i32).ok(),
-            visgroup_shown: get_key!(kv, "visgroupshown", "_".to_string()) == "1",
-            visgroup_auto_shown: get_key!(kv, "visgroupautoshown", "_".to_string()) == "1",
-            comments: kv.get("comments").cloned(),
-            logical_pos: kv.get("logicalpos").cloned(),
+            color: take_key_or_default(kv, "color", "255 255 255".to_string()),
+            visgroup_id: take_and_parse_key::<i32>(kv, "visgroupid").ok(),
+            group_id: take_and_parse_key::<i32>(kv, "groupid").ok(),
+            visgroup_shown: get_key_ref(kv, "visgroupshown").map_or(false, |v| v == "1"),
+            visgroup_auto_shown: get_key_ref(kv, "visgroupautoshown").map_or(false, |v| v == "1"),
+            comments: kv.swap_remove("comments"),
+            logical_pos: kv.swap_remove("logicalpos"),
         })
     }
 }

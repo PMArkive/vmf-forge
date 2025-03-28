@@ -36,9 +36,17 @@ pub enum VmfError {
     },
 }
 
-// Note: To create ParseInt or ParseFloat errors, you'll typically use map_err
-// where the key context is available, for example:
-// value_str.parse::<i32>().map_err(|e| VmfError::ParseInt { key: key.into(), source: e })?;
-
 /// A type alias for `Result` that uses `VmfError` as the error type.
 pub type VmfResult<T> = Result<T, VmfError>;
+
+impl From<(std::num::ParseIntError, String)> for VmfError {
+    fn from(err: (std::num::ParseIntError, String)) -> Self {
+        VmfError::ParseInt { source: err.0, key: err.1 }
+    }
+}
+
+impl From<(std::num::ParseFloatError, String)> for VmfError {
+    fn from(err: (std::num::ParseFloatError, String)) -> Self {
+        VmfError::ParseFloat { source: err.0, key: err.1 }
+    }
+}
