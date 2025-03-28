@@ -4,6 +4,7 @@ use indexmap::IndexMap;
 use pest::iterators::Pair;
 use pest::Parser;
 use pest_derive::Parser;
+use std::mem;
 
 use crate::errors::{VmfError, VmfResult};
 
@@ -47,8 +48,11 @@ pub fn parse_vmf(input: &str) -> VmfResult<VmfFile> {
                 // -- entities
                 "entity" => vmf_file.entities.push(Entity::try_from(block)?),
                 "hidden" => {
-                    if let Some(hidden_block) = block.blocks.first() {
-                        let mut ent = Entity::try_from(hidden_block.to_owned())?;
+                    let mut blocks = block.blocks;
+                    if !blocks.is_empty() {
+                        // Take the first block out of the vector to avoid cloning
+                        let first_block = mem::take(&mut blocks[0]);
+                        let mut ent = Entity::try_from(first_block)?;
                         ent.is_hidden = true;
                         vmf_file.hiddens.push(ent)
                     }
@@ -84,29 +88,27 @@ fn parse_block(pair: Pair<Rule>) -> VmfResult<VmfBlock> {
     let mut inner = pair.into_inner();
     let block_name_pair = inner
         .next()
-        .ok_or(VmfError::InvalidFormat("block name not found".to_string()))?;
+        .ok_or_else(|| VmfError::InvalidFormat("block name not found".to_string()))?;
 
     let name = block_name_pair.as_str().to_string();
 
-    let mut key_values = IndexMap::new();
-    let mut blocks = Vec::new();
+    // Pre-allocate with reasonable capacity to avoid reallocations
+    let mut key_values = IndexMap::with_capacity(8);
+    let mut blocks = Vec::with_capacity(4);
 
     for item in inner {
         match item.as_rule() {
             Rule::key_value => {
                 let mut kv_inner = item.into_inner();
-                let key = strip_quotes(
-                    kv_inner
-                        .next()
-                        .ok_or(VmfError::InvalidFormat("key not found".to_string()))?
-                        .as_str(),
-                );
-                let value = strip_quotes(
-                    kv_inner
-                        .next()
-                        .ok_or(VmfError::InvalidFormat("value not found".to_string()))?
-                        .as_str(),
-                );
+                let key_pair = kv_inner
+                    .next()
+                    .ok_or_else(|| VmfError::InvalidFormat("key not found".to_string()))?;
+                let value_pair = kv_inner
+                    .next()
+                    .ok_or_else(|| VmfError::InvalidFormat("value not found".to_string()))?;
+
+                let key = strip_quotes(key_pair.as_str());
+                let value = strip_quotes(value_pair.as_str());
 
                 key_values
                     .entry(key)
@@ -139,9 +141,15 @@ fn parse_block(pair: Pair<Rule>) -> VmfResult<VmfBlock> {
 /// # Returns
 ///
 /// The string with quotes removed.
+#[inline]
 fn strip_quotes(s: &str) -> String {
-    s.trim_matches('"').to_string()
+    if s.starts_with('"') && s.ends_with('"') {
+        s[1..s.len()-1].to_string()
+    } else {
+        s.to_string()
+    }
 }
+
 
 #[cfg(test)]
 mod tests {

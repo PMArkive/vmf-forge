@@ -10,6 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use super::common::Editor;
 use super::world::Solid;
+use std::mem;
 
 /// Represents an entity in a VMF file.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
@@ -49,7 +50,7 @@ impl Entity {
     /// assert_eq!(entity.id(), 1);
     /// ```
     pub fn new(classname: impl Into<String>, id: u64) -> Self {
-        let mut key_values = IndexMap::new();
+        let mut key_values = IndexMap::with_capacity(12);
         key_values.insert("classname".to_string(), classname.into());
         key_values.insert("id".to_string(), id.to_string());
         Entity {
@@ -239,14 +240,16 @@ impl TryFrom<VmfBlock> for Entity {
         };
         let mut solids = Vec::new();
 
-        for block in block.blocks {
-            match block.name.as_str() {
-                "editor" => ent.editor = Editor::try_from(block)?,
-                "connections" => ent.connections = process_connections(block.key_values),
-                "solid" => solids.push(Solid::try_from(block)?),
+        for mut inner_block in block.blocks {
+            match inner_block.name.as_str() {
+                "editor" => ent.editor = Editor::try_from(inner_block)?,
+                "connections" => ent.connections = process_connections(inner_block.key_values),
+                "solid" => solids.push(Solid::try_from(inner_block)?),
                 "hidden" => {
-                    if let Some(hidden_block) = block.blocks.first() {
-                        solids.push(Solid::try_from(hidden_block.to_owned())?)
+                    if !inner_block.blocks.is_empty() {
+                        // Take ownership of the first block instead of cloning
+                        let hidden_block = mem::take(&mut inner_block.blocks[0]);
+                        solids.push(Solid::try_from(hidden_block)?)
                     }
                 }
                 _ => {
@@ -254,7 +257,7 @@ impl TryFrom<VmfBlock> for Entity {
                     debug_assert!(
                         false,
                         "Unexpected block name: {}, id: {:?}",
-                        block.name,
+                        inner_block.name,
                         ent.key_values.get("id")
                     );
                 }
@@ -319,14 +322,9 @@ impl VmfSerializable for Entity {
     }
 }
 
-/// Represents a collection of entities in a VMF file.
-#[derive(
-    Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut, IntoIterator,
-)]
-pub struct Entities {
-    /// The vector of entities.
-    pub vec: Vec<Entity>,
-}
+/// A collection of entities.
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Deref, DerefMut, IntoIterator, PartialEq)]
+pub struct Entities(pub Vec<Entity>);
 
 impl Entities {
     /// Returns an iterator over the entities that have the specified key-value pair.
@@ -340,8 +338,7 @@ impl Entities {
         key: &'a str,
         value: &'a str,
     ) -> impl Iterator<Item = &'a Entity> + 'a {
-        self.vec
-            .iter()
+        self.iter()
             .filter(move |ent| ent.key_values.get(key).is_some_and(|v| v == value))
     }
 
@@ -356,8 +353,7 @@ impl Entities {
         key: &'a str,
         value: &'a str,
     ) -> impl Iterator<Item = &'a mut Entity> + 'a {
-        self.vec
-            .iter_mut()
+        self.iter_mut()
             .filter(move |ent| ent.key_values.get(key).is_some_and(|v| v == value))
     }
 
@@ -439,11 +435,10 @@ impl Entities {
     /// if no entity with the given ID exists.
     pub fn remove_entity(&mut self, entity_id: i32) -> Option<Entity> {
         if let Some(index) = self
-            .vec
             .iter()
             .position(|e| e.key_values.get("id") == Some(&entity_id.to_string()))
         {
-            Some(self.vec.remove(index))
+            Some(self.remove(index))
         } else {
             None
         }
@@ -456,8 +451,7 @@ impl Entities {
     /// * `key` - The key to check.
     /// * `value` - The value to compare against.
     pub fn remove_by_keyvalue(&mut self, key: &str, value: &str) {
-        self.vec
-            .retain(|ent| ent.key_values.get(key).map(|v| v != value).unwrap_or(true));
+        self.retain(|ent| ent.key_values.get(key).map(|v| v != value).unwrap_or(true));
     }
 }
 

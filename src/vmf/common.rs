@@ -54,7 +54,7 @@ impl TryFrom<VmfBlock> for Editor {
         let kv = &block.key_values;
 
         Ok(Self {
-            color: get_key!(kv, "color", "255 255 255".to_string()).to_owned(),
+            color: get_key!(kv, "color", "255 255 255".to_string()),
             visgroup_id: parse_hs_key!(kv, "visgroupid", i32).ok(),
             group_id: parse_hs_key!(kv, "groupid", i32).ok(),
             visgroup_shown: get_key!(kv, "visgroupshown", "_".to_string()) == "1",
