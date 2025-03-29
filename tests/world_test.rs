@@ -98,7 +98,7 @@ mod tests {
 
         let result = World::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
 
     #[test]
@@ -269,7 +269,7 @@ mod tests {
 
         let result = Solid::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
 
     #[test]
@@ -378,7 +378,7 @@ mod tests {
 
         let result = Side::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
 
     #[test]
@@ -491,7 +491,7 @@ mod tests {
             blocks: vec![],
         };
         let result = Group::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
     #[test]
     fn group_to_vmf_string() {

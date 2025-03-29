@@ -68,7 +68,7 @@ mod tests {
 
         let result = VersionInfo::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
 
     #[test]

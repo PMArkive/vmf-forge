@@ -78,7 +78,7 @@ mod tests {
         };
 
         let result = Cameras::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
 
     #[test]
@@ -232,7 +232,7 @@ mod tests {
         };
 
         let result = Cordons::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
     }
 
     #[test]
