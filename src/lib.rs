@@ -54,7 +54,7 @@ pub trait VmfSerializable {
 }
 
 /// Represents a parsed VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct VmfFile {
     /// The path to the VMF file, if known.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -75,6 +75,22 @@ pub struct VmfFile {
     pub cameras: Cameras,
     /// The cordon data in the VMF file.
     pub cordons: Cordons,
+}
+
+impl Default for VmfFile {
+    fn default() -> Self {
+        Self {
+            path: None,
+            versioninfo: Default::default(),
+            visgroups: Default::default(),
+            viewsettings: Default::default(),
+            world: Default::default(), 
+            entities: Entities(Vec::with_capacity(128)), 
+            hiddens: Entities(Vec::with_capacity(16)), 
+            cameras: Default::default(),
+            cordons: Default::default(),
+        }
+    }
 }
 
 impl VmfFile {

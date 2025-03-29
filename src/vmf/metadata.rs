@@ -105,7 +105,7 @@ impl TryFrom<VmfBlock> for VisGroups {
     type Error = VmfError;
 
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let mut groups = Vec::with_capacity(12);
+        let mut groups = Vec::with_capacity(block.blocks.len()); 
         for group in block.blocks {
             groups.push(VisGroup::try_from(group)?);
         }
@@ -169,16 +169,14 @@ impl TryFrom<VmfBlock> for VisGroup {
     type Error = VmfError;
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
-        let children = if block.blocks.is_empty() {
-            None
+        let children = if !block.blocks.is_empty() {
+            let mut children_vec = Vec::with_capacity(block.blocks.len());
+            for child_block in block.blocks {
+                children_vec.push(VisGroup::try_from(child_block)?);
+            }
+            Some(children_vec)
         } else {
-            Some(
-                block
-                    .blocks
-                    .into_iter()
-                    .map(VisGroup::try_from)
-                    .collect::<VmfResult<Vec<_>>>()?,
-            )
+            None
         };
 
         let kv = &mut block.key_values;

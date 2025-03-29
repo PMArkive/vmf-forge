@@ -94,7 +94,7 @@ fn parse_block(pair: Pair<Rule>) -> VmfResult<VmfBlock> {
 
     // Pre-allocate with reasonable capacity to avoid reallocations
     let mut key_values = IndexMap::with_capacity(8);
-    let mut blocks = Vec::with_capacity(4);
+    let mut blocks = Vec::with_capacity(16);
 
     for item in inner {
         match item.as_rule() {

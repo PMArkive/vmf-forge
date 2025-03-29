@@ -25,7 +25,7 @@ impl TryFrom<VmfBlock> for Cameras {
     type Error = VmfError;
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
-        let mut cams = Vec::with_capacity(12);
+        let mut cams = Vec::with_capacity(block.blocks.len());
         for group in block.blocks {
             cams.push(Camera::try_from(group)?);
         }
@@ -132,7 +132,7 @@ impl TryFrom<VmfBlock> for Cordons {
     type Error = VmfError;
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
-        let mut cordons = Vec::with_capacity(12);
+        let mut  cordons = Vec::with_capacity(block.blocks.len());
         for group in block.blocks {
             cordons.push(Cordon::try_from(group)?);
         }

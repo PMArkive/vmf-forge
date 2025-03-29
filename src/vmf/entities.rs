@@ -238,7 +238,7 @@ impl TryFrom<VmfBlock> for Entity {
             key_values,
             ..Default::default()
         };
-        let mut solids = Vec::new();
+        let mut solids = Vec::with_capacity(block.blocks.len());
 
         for mut inner_block in block.blocks {
             match inner_block.name.as_str() {
@@ -461,14 +461,14 @@ fn process_connections(map: IndexMap<String, String>) -> Option<Vec<(String, Str
         return None;
     }
 
-    let result = map
-        .iter()
-        .flat_map(|(key, value)| {
-            value
-                .split('\r')
-                .map(move |part| (key.clone(), part.to_string()))
-        })
-        .collect();
+    // Estimate: we assume an average of no more than 2 records per output
+    let mut result = Vec::with_capacity(map.len() * 2);
+    for (key, value) in map.iter() { // Используем iter, т.к. map по ссылке
+        for part in value.split('\r') {
+            result.push((key.clone(), part.to_string()));
+        }
+    }
+
 
     Some(result)
 }

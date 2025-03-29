@@ -29,9 +29,12 @@ impl TryFrom<VmfBlock> for World {
     type Error = VmfError;
 
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
+        let estimated_solids = block.blocks.len().saturating_sub(1);
         let mut world = World {
             key_values: block.key_values,
-            ..Default::default()
+            solids: Vec::with_capacity(estimated_solids), 
+            hidden: Vec::with_capacity(16),
+            group: None,
         };
 
         for mut inner_block in block.blocks {
@@ -143,7 +146,7 @@ impl TryFrom<VmfBlock> for Solid {
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
         let mut solid = Solid {
             id: take_and_parse_key::<u64>(&mut block.key_values, "id")?,
-            sides: Vec::with_capacity(4),
+            sides: Vec::with_capacity(block.blocks.len()),
             ..Default::default()
         };
 
