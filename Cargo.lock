@@ -739,7 +739,6 @@ dependencies = [
  "pest_generator",
  "pretty_assertions",
  "serde",
- "serde_json",
  "thiserror",
 ]
 

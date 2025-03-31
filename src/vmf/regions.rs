@@ -2,6 +2,7 @@
 
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
 use crate::utils::{get_key_ref, take_and_parse_key, take_key_owned, To01String};
@@ -11,7 +12,8 @@ use crate::{
 };
 
 /// Represents the camera data in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut)]
+#[derive(Debug, Default, Clone, PartialEq, Deref, DerefMut)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Cameras {
     /// The index of the active camera.
     pub active: i8,
@@ -83,7 +85,8 @@ impl VmfSerializable for Cameras {
 }
 
 /// Represents a single camera in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Camera {
     /// The position of the camera in the VMF coordinate system.
     pub position: String, // vertex
@@ -118,7 +121,8 @@ impl From<Camera> for VmfBlock {
 }
 
 /// Represents the cordons data in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut)]
+#[derive(Debug, Default, Clone, PartialEq, Deref, DerefMut)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Cordons {
     /// The index of the active cordon.
     pub active: i8,
@@ -186,7 +190,8 @@ impl VmfSerializable for Cordons {
 }
 
 /// Represents a single cordon in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Cordon {
     /// The name of the cordon.
     pub name: String,

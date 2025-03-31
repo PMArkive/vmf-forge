@@ -20,6 +20,7 @@
 //! ```
 
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io::{Read, Write};
@@ -54,10 +55,11 @@ pub trait VmfSerializable {
 }
 
 /// Represents a parsed VMF file.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VmfFile {
     /// The path to the VMF file, if known.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub path: Option<String>,
     /// The version info of the VMF file.
     pub versioninfo: VersionInfo,

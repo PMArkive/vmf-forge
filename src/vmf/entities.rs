@@ -6,6 +6,7 @@ use crate::{
 };
 use derive_more::{Deref, DerefMut, IntoIterator};
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
 use super::common::Editor;
@@ -13,22 +14,23 @@ use super::world::Solid;
 use std::mem;
 
 /// Represents an entity in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Entity {
     /// The key-value pairs associated with this entity.
     pub key_values: IndexMap<String, String>,
     /// The output connections of this entity.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub connections: Option<Vec<(String, String)>>,
     /// The solids associated with this entity, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub solids: Option<Vec<Solid>>,
     /// The editor data for this entity.
     pub editor: Editor,
     /// Indicates if the entity is hidden within the editor.  This field
     /// is primarily used when parsing a `hidden` block within a VMF file,
     /// and is not serialized back when writing the VMF.
-    #[serde(default, skip_serializing)]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing))]
     pub is_hidden: bool,
 }
 
@@ -323,7 +325,8 @@ impl VmfSerializable for Entity {
 }
 
 /// A collection of entities.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Deref, DerefMut, IntoIterator, PartialEq)]
+#[derive(Debug, Default, Clone, Deref, DerefMut, IntoIterator, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Entities(pub Vec<Entity>);
 
 impl Entities {

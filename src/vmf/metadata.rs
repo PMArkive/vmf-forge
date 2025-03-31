@@ -3,6 +3,7 @@
 use derive_more::{Deref, DerefMut, IntoIterator};
 
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
 use crate::utils::{get_key_ref, take_and_parse_key, take_key_owned, To01String};
@@ -12,7 +13,8 @@ use crate::{
 };
 
 /// Represents the version info of a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VersionInfo {
     /// The editor version.
     pub editor_version: i32,
@@ -93,8 +95,9 @@ impl VmfSerializable for VersionInfo {
 
 /// Represents a collection of VisGroups in a VMF file.
 #[derive(
-    Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut, IntoIterator,
+    Debug, Default, Clone, PartialEq, Deref, DerefMut, IntoIterator,
 )]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VisGroups {
     /// The list of VisGroups.
     #[deref]
@@ -152,7 +155,8 @@ impl VmfSerializable for VisGroups {
 }
 
 /// Represents a VisGroup in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VisGroup {
     /// The name of the VisGroup.
     pub name: String,
@@ -161,7 +165,7 @@ pub struct VisGroup {
     /// The color of the VisGroup in the editor.
     pub color: String,
     /// The child VisGroups of this VisGroup, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub children: Option<Vec<VisGroup>>,
 }
 
@@ -243,7 +247,8 @@ impl VmfSerializable for VisGroup {
 }
 
 /// Represents the view settings of a VMF file.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct ViewSettings {
     /// Whether snapping to the grid is enabled.
     pub snap_to_grid: bool,

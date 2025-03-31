@@ -1,6 +1,7 @@
 //! This module provides structures for representing the world block in a VMF file, which contains world geometry, hidden entities, and groups.
 
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
 use super::common::Editor;
@@ -12,7 +13,8 @@ use crate::{
 use std::mem;
 
 /// Represents the world block in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct World {
     /// The key-value pairs associated with the world.
     pub key_values: IndexMap<String, String>,
@@ -21,7 +23,7 @@ pub struct World {
     /// The list of hidden solids in the world.
     pub hidden: Vec<Solid>,
     /// The groups present in the world, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub group: Option<Group>,
 }
 
@@ -130,7 +132,8 @@ impl VmfSerializable for World {
 }
 
 /// Represents a solid object in the VMF world.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Solid {
     /// The unique ID of the solid.
     pub id: u64,
@@ -213,7 +216,8 @@ impl VmfSerializable for Solid {
 }
 
 /// Represents a side of a solid object in the VMF world.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Side {
     /// The unique ID of the side.
     pub id: u32,
@@ -226,17 +230,17 @@ pub struct Side {
     /// The V axis of the texture coordinates.
     pub v_axis: String,
     /// The rotation of the texture.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub rotation: Option<f32>,
     /// The scale of the lightmap.
     pub lightmap_scale: u16,
     /// The smoothing groups that this side belongs to.
     pub smoothing_groups: i32,
     /// flags
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub flags: Option<u32>,
     /// The displacement info of the side, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub dispinfo: Option<DispInfo>,
 }
 
@@ -387,14 +391,15 @@ fn take_block(blocks: &mut Vec<VmfBlock>, name: &str) -> VmfResult<VmfBlock> {
 }
 
 /// Represents the displacement information for a side.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct DispInfo {
     /// The power of the displacement map (2, 3, or 4).
     pub power: u8,
     /// The starting position of the displacement.
     pub start_position: String,
     /// Flags for the displacement.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
     pub flags: Option<u32>,
     /// The elevation of the displacement.
     pub elevation: f32,
@@ -648,7 +653,8 @@ impl DispInfo {
 }
 
 /// Represents rows of data for displacement information, such as normals, distances, offsets, etc.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct DispRows {
     /// The rows of data, each represented as a string.
     pub rows: Vec<String>,
@@ -725,7 +731,8 @@ impl DispRows {
 }
 
 /// Represents a group in the VMF world.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Group {
     /// The unique ID of the group.
     pub id: u32,
