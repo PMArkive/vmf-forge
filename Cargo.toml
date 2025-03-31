@@ -20,21 +20,21 @@ name = "parser_iai_bench"
 harness = false 
 
 [dependencies]
-pest = "2.7.15"
-pest_derive = "2.7.15"
-serde = { version = "1.0.217", features = ["derive"] }
-indexmap = { version = "2.7.1", features = ["serde"] }
-serde_json = "1.0.137"
-derive_more = { version = "^2.0.1", features = ["deref", "deref_mut", "into_iterator"] }
+pest = "2.8.0"
+pest_derive = "2.8.0"
+serde = { version = "1.0.219", features = ["derive"] }
+indexmap = { version = "2.8.0", features = ["serde"] }
+serde_json = "1.0.140"
+derive_more = { version = "2.0.1", features = ["deref", "deref_mut", "into_iterator"] }
 thiserror = "2.0.12"
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
-criterion = { version = "0.5", features = ["html_reports"] }
+pretty_assertions = "1.4.1"
+criterion = { version = "0.5.1", features = ["html_reports"] }
 iai-callgrind = "0.14.0"
 
 [build-dependencies]
-pest_generator = "2.7.15"
+pest_generator = "2.8.0"
 
 
 [features]
