@@ -11,6 +11,13 @@ documentation = "https://docs.rs/vmf-forge"
 keywords = ["vmf", "valve", "map", "parser", "source"]
 categories = ["parser-implementations", "game-development"]
 
+[[bench]]
+name = "vmf_parser_bench"
+harness = false 
+
+[[bench]]
+name = "parser_iai_bench"
+harness = false 
 
 [dependencies]
 pest = "2.7.15"
@@ -23,11 +30,15 @@ thiserror = "2.0.12"
 
 [dev-dependencies]
 pretty_assertions = "1.4.0"
+criterion = { version = "0.5", features = ["html_reports"] }
+iai-callgrind = "0.14.0"
 
 [build-dependencies]
 pest_generator = "2.7.15"
 
+
 [features]
+default = []
 debug_assert_info = []
 
 # [lints.rust]
