@@ -9,7 +9,8 @@ use std::mem;
 use crate::errors::{VmfError, VmfResult};
 
 use crate::vmf::regions::{Cordon, Cordons};
-use crate::{Cameras, Entity, VersionInfo, ViewSettings, VisGroups, VmfBlock, VmfFile, World};
+use crate::VmfBlock;
+use crate::prelude::{Cameras, Entity, VersionInfo, ViewSettings, VisGroups, VmfFile, World};
 
 /// The VMF parser.
 #[derive(Parser)]
