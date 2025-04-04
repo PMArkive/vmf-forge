@@ -71,8 +71,8 @@ impl TryFrom<VmfBlock> for Editor {
             color: take_key_or_default(kv, "color", "255 255 255".to_string()),
             visgroup_id: take_and_parse_key::<i32>(kv, "visgroupid").ok(),
             group_id: take_and_parse_key::<i32>(kv, "groupid").ok(),
-            visgroup_shown: get_key_ref(kv, "visgroupshown").map_or(false, |v| v == "1"),
-            visgroup_auto_shown: get_key_ref(kv, "visgroupautoshown").map_or(false, |v| v == "1"),
+            visgroup_shown: get_key_ref(kv, "visgroupshown").is_ok_and(|v| v == "1"),
+            visgroup_auto_shown: get_key_ref(kv, "visgroupautoshown").is_ok_and(|v| v == "1"),
             comments: kv.swap_remove("comments"),
             logical_pos: kv.swap_remove("logicalpos"),
         })

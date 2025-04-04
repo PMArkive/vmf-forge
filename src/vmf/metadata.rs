@@ -104,7 +104,7 @@ pub struct VisGroups {
 
 /// Recursively finds a VisGroup by its ID within a slice of VisGroups.
 /// Returns None if not found.
-fn find_visgroup_by_id<'a>(groups: &'a [VisGroup], id_to_find: i32) -> Option<&'a VisGroup> {
+fn find_visgroup_by_id(groups: &[VisGroup], id_to_find: i32) -> Option<&VisGroup> {
     for group in groups {
         if group.id == id_to_find {
             return Some(group);
@@ -120,10 +120,10 @@ fn find_visgroup_by_id<'a>(groups: &'a [VisGroup], id_to_find: i32) -> Option<&'
 
 /// Recursively finds a mutable reference to a VisGroup by its ID within a slice of VisGroups.
 /// Returns None if not found.
-fn find_visgroup_by_id_mut<'a>(
-    groups: &'a mut [VisGroup],
+fn find_visgroup_by_id_mut(
+    groups: &mut [VisGroup],
     id_to_find: i32,
-) -> Option<&'a mut VisGroup> {
+) -> Option<&mut VisGroup> {
     for group in groups {
         if group.id == id_to_find {
             return Some(group);

@@ -3,10 +3,10 @@ use vmf_forge::VmfFile;
 
 // --- Benchmark Data ---
 // Load VMF content at compile time using include_str!.
-static VMF_CONTENT_SMALL: &'static str = include_str!("../vmf_examples/valid.vmf");
-static VMF_CONTENT_LARGE: &'static str = include_str!("../vmf_examples/complex.vmf");
+static VMF_CONTENT_SMALL: &str = include_str!("../vmf_examples/valid.vmf");
+static VMF_CONTENT_LARGE: &str = include_str!("../vmf_examples/complex.vmf");
 #[allow(dead_code)] // Used by 'parse_super_large_vmf', which is currently commented out below
-static VMF_CONTENT_SUPER_LARGE: &'static str = include_str!("../vmf_examples/VERY_complex.vmf");
+static VMF_CONTENT_SUPER_LARGE: &str = include_str!("../vmf_examples/VERY_complex.vmf");
 
 // --- Benchmark Functions ---
 

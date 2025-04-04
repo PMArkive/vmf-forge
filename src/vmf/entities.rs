@@ -443,14 +443,10 @@ impl Entities {
     /// An `Option` containing the removed `Entity`, if found. Returns `None`
     /// if no entity with the given ID exists.
     pub fn remove_entity(&mut self, entity_id: i32) -> Option<Entity> {
-        if let Some(index) = self
+        self
             .iter()
             .position(|e| e.key_values.get("id") == Some(&entity_id.to_string()))
-        {
-            Some(self.remove(index))
-        } else {
-            None
-        }
+            .map(|index| self.remove(index))
     }
 
     /// Removes all entities that have a matching key-value pair.

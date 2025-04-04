@@ -15,11 +15,11 @@ impl VmfFile {
     ///
     /// An `Option` containing an iterator yielding references to the matching `Entity` objects.
     /// Returns `None` if no VisGroup with the given `group_id` is found.
-    pub fn get_entities_in_visgroup<'a>(
-        &'a self,
+    pub fn get_entities_in_visgroup(
+        &self,
         group_id: i32,
         include_children: bool,
-    ) -> Option<impl Iterator<Item = &'a Entity> + 'a> {
+    ) -> Option<impl Iterator<Item = &Entity> + '_> {
         // 1. Find the starting VisGroup by ID. Returns None if not found.
         let start_group = self.visgroups.find_by_id(group_id)?;
 
@@ -42,8 +42,7 @@ impl VmfFile {
                 // Check if the entity belongs to one of the target VisGroup IDs.
                 entity
                     .editor
-                    .visgroup_id
-                    .map_or(false, |ent_group_id| ids_to_check.contains(&ent_group_id))
+                    .visgroup_id.is_some_and(|ent_group_id| ids_to_check.contains(&ent_group_id))
             });
 
         // 4. Return the iterator wrapped in Some.
@@ -61,11 +60,11 @@ impl VmfFile {
     ///
     /// An `Option` containing an iterator yielding mutable references to the matching `Entity` objects.
     /// Returns `None` if no VisGroup with the given `group_id` is found.
-    pub fn get_entities_in_visgroup_mut<'a>(
-        &'a mut self,
+    pub fn get_entities_in_visgroup_mut(
+        &mut self,
         group_id: i32,
         include_children: bool,
-    ) -> Option<impl Iterator<Item = &'a mut Entity> + 'a> {
+    ) -> Option<impl Iterator<Item = &mut Entity> + '_> {
         // Note: returns mutable references
 
         // 1. Find the starting VisGroup by ID (immutable lookup is sufficient to get IDs).
@@ -88,8 +87,7 @@ impl VmfFile {
             .filter(move |entity| {
                 entity
                     .editor
-                    .visgroup_id
-                    .map_or(false, |ent_group_id| ids_to_check.contains(&ent_group_id))
+                    .visgroup_id.is_some_and(|ent_group_id| ids_to_check.contains(&ent_group_id))
             });
 
         // 4. Return the mutable iterator wrapped in Some.
@@ -107,11 +105,11 @@ impl VmfFile {
     ///
     /// An `Option` containing an iterator yielding references to the matching `Solid` objects.
     /// Returns `None` if no VisGroup with the given `group_id` is found.
-    pub fn get_solids_in_visgroup<'a>(
-        &'a self,
+    pub fn get_solids_in_visgroup(
+        &self,
         group_id: i32,
         include_children: bool,
-    ) -> Option<impl Iterator<Item = &'a Solid> + 'a> {
+    ) -> Option<impl Iterator<Item = &Solid> + '_> {
         // 1. Find the starting VisGroup.
         let start_group = self.visgroups.find_by_id(group_id)?;
 
@@ -131,7 +129,7 @@ impl VmfFile {
             .iter()
             .chain(self.world.hidden.iter())
             .filter(move |solid| {
-                solid.editor.visgroup_id.map_or(false, |solid_group_id| {
+                solid.editor.visgroup_id.is_some_and(|solid_group_id| {
                     ids_to_check.contains(&solid_group_id)
                 })
             });
@@ -151,11 +149,11 @@ impl VmfFile {
     ///
     /// An `Option` containing an iterator yielding mutable references to the matching `Solid` objects.
     /// Returns `None` if no VisGroup with the given `group_id` is found.
-    pub fn get_solids_in_visgroup_mut<'a>(
-        &'a mut self,
+    pub fn get_solids_in_visgroup_mut(
+        &mut self,
         group_id: i32,
         include_children: bool,
-    ) -> Option<impl Iterator<Item = &'a mut Solid> + 'a> {
+    ) -> Option<impl Iterator<Item = &mut Solid> + '_> {
         // 1. Find the starting VisGroup.
         let start_group = self.visgroups.find_by_id(group_id)?;
 
@@ -175,7 +173,7 @@ impl VmfFile {
             .iter_mut() // Mutable iterator
             .chain(self.world.hidden.iter_mut()) // Chain mutable iterator
             .filter(move |solid| {
-                solid.editor.visgroup_id.map_or(false, |solid_group_id| {
+                solid.editor.visgroup_id.is_some_and(|solid_group_id| {
                     ids_to_check.contains(&solid_group_id)
                 })
             });
