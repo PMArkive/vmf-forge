@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use pretty_assertions::assert_eq;
-    use vmf_forge::errors::VmfError;
     use vmf_forge::VmfFile;
+    use vmf_forge::errors::VmfError;
 
     #[test]
     fn open_and_parse_valid_vmf() {
@@ -111,14 +111,18 @@ mod tests {
         assert!(vmf_file.cordons.cordons.is_empty());
 
         // Assert a few specific entities
-        assert!(vmf_file
-            .entities
-            .iter()
-            .any(|e| e.key_values.get("classname") == Some(&"trigger_multiple".to_string())));
-        assert!(vmf_file
-            .entities
-            .iter()
-            .any(|e| e.key_values.get("targetname") == Some(&"door_0".to_string())));
+        assert!(
+            vmf_file
+                .entities
+                .iter()
+                .any(|e| e.key_values.get("classname") == Some(&"trigger_multiple".to_string()))
+        );
+        assert!(
+            vmf_file
+                .entities
+                .iter()
+                .any(|e| e.key_values.get("targetname") == Some(&"door_0".to_string()))
+        );
 
         assert!(vmf_file.world.solids.iter().any(|s| s.id == 9157));
         assert_eq!(vmf_file.visgroups.groups.len(), 1);
@@ -128,7 +132,9 @@ mod tests {
     #[test]
     fn parse_vmf_with_many_entities() {
         // Create a string with a VMF containing many entities
-        let mut input = String::from("versioninfo\n{\n\t\"editorversion\" \"400\"\n\t\"editorbuild\" \"8000\"\n\t\"mapversion\" \"1\"\n\t\"formatversion\" \"100\"\n\t\"prefab\" \"0\"\n}\nworld\n{\n\t\"id\" \"1\"\n\t\"classname\" \"worldspawn\"\n}\n");
+        let mut input = String::from(
+            "versioninfo\n{\n\t\"editorversion\" \"400\"\n\t\"editorbuild\" \"8000\"\n\t\"mapversion\" \"1\"\n\t\"formatversion\" \"100\"\n\t\"prefab\" \"0\"\n}\nworld\n{\n\t\"id\" \"1\"\n\t\"classname\" \"worldspawn\"\n}\n",
+        );
         for i in 0..1000 {
             input.push_str(&format!("entity\n{{\n\t\"id\" \"{}\"\n\t\"classname\" \"info_player_start\"\n\t\"origin\" \"0 0 0\"\n}}\n", i + 2));
         }

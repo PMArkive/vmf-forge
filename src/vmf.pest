@@ -1,11 +1,10 @@
 WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
 // COMMENT    = _{ "//" ~ (!NEWLINE ~ ANY)* ~ NEWLINE? }
-QT         = _{ "\"" }
-kv   = { QT ~ (!QT  ~ ANY)* ~ QT }
-
+QT = _{ "\"" }
+kv = @{ QT ~ (!QT ~ ANY)* ~ QT }
 key_value = { kv ~ kv }
 
-block_name = @{ (!(" " | "{" | "}" | "\n" | "\r") ~ ANY)+ }
+block_name = @{ (ASCII_ALPHANUMERIC | "_")+ }
 block = { block_name ~ "{" ~ (key_value | block)* ~ "}" }
 
 file = { SOI ~ block* ~ EOI }

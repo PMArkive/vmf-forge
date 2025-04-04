@@ -2,10 +2,10 @@
 mod tests {
     use indexmap::IndexMap;
     use pretty_assertions::assert_eq;
-    use vmf_forge::errors::VmfError;
-    use vmf_forge::vmf::regions::*;
     use vmf_forge::VmfBlock;
     use vmf_forge::VmfSerializable;
+    use vmf_forge::errors::VmfError;
+    use vmf_forge::vmf::regions::*;
 
     // Tests for Cameras
     #[test]
@@ -78,7 +78,10 @@ mod tests {
         };
 
         let result = Cameras::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]
@@ -232,7 +235,10 @@ mod tests {
         };
 
         let result = Cordons::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]

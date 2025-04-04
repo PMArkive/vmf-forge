@@ -2,16 +2,18 @@
 
 use derive_more::{Deref, DerefMut};
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{get_key, parse_hs_key, To01String};
+use crate::utils::{To01String, get_key_ref, take_and_parse_key, take_key_owned};
 use crate::{
-    errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
+    errors::{VmfError, VmfResult},
 };
 
 /// Represents the camera data in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut)]
+#[derive(Debug, Default, Clone, PartialEq, Deref, DerefMut)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Cameras {
     /// The index of the active camera.
     pub active: i8,
@@ -24,14 +26,14 @@ pub struct Cameras {
 impl TryFrom<VmfBlock> for Cameras {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let mut cams = Vec::with_capacity(12);
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let mut cams = Vec::with_capacity(block.blocks.len());
         for group in block.blocks {
             cams.push(Camera::try_from(group)?);
         }
 
         Ok(Self {
-            active: parse_hs_key!(&block.key_values, "activecamera", i8)?,
+            active: take_and_parse_key::<i8>(&mut block.key_values, "activecamera")?,
             cams,
         })
     }
@@ -83,7 +85,8 @@ impl VmfSerializable for Cameras {
 }
 
 /// Represents a single camera in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Camera {
     /// The position of the camera in the VMF coordinate system.
     pub position: String, // vertex
@@ -94,10 +97,11 @@ pub struct Camera {
 impl TryFrom<VmfBlock> for Camera {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
         Ok(Self {
-            position: get_key!(&block.key_values, "position")?.to_owned(),
-            look: get_key!(&block.key_values, "look")?.to_owned(),
+            position: take_key_owned(kv, "position")?,
+            look: take_key_owned(kv, "look")?,
         })
     }
 }
@@ -117,7 +121,8 @@ impl From<Camera> for VmfBlock {
 }
 
 /// Represents the cordons data in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut)]
+#[derive(Debug, Default, Clone, PartialEq, Deref, DerefMut)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Cordons {
     /// The index of the active cordon.
     pub active: i8,
@@ -130,14 +135,14 @@ pub struct Cordons {
 impl TryFrom<VmfBlock> for Cordons {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let mut cordons = Vec::with_capacity(12);
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let mut cordons = Vec::with_capacity(block.blocks.len());
         for group in block.blocks {
             cordons.push(Cordon::try_from(group)?);
         }
 
         Ok(Self {
-            active: parse_hs_key!(&block.key_values, "active", i8)?,
+            active: take_and_parse_key::<i8>(&mut block.key_values, "active")?,
             cordons,
         })
     }
@@ -185,7 +190,8 @@ impl VmfSerializable for Cordons {
 }
 
 /// Represents a single cordon in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Cordon {
     /// The name of the cordon.
     pub name: String,
@@ -200,29 +206,53 @@ pub struct Cordon {
 impl TryFrom<VmfBlock> for Cordon {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let (min, max) = block
-            .blocks
-            .first()
-            .ok_or_else(|| VmfError::InvalidFormat("Missing 'box' block in Cordon".to_string()))
-            .and_then(|sub_block| {
-                Ok((
-                    get_key!(&sub_block.key_values, "mins")?,
-                    get_key!(&sub_block.key_values, "maxs")?,
-                ))
-            })
-            .or_else(|_| {
-                Ok::<(_, _), VmfError>((
-                    get_key!(&block.key_values, "mins")?,
-                    get_key!(&block.key_values, "maxs")?,
-                ))
-            })?;
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        // Attempt #1: Try to take ownership of "mins" and "maxs" from the first sub-block.
+        let sub_block_result: Option<(String, String)> =
+            block.blocks.get_mut(0).and_then(|sub_block| {
+                // Try removing both keys using swap_remove (O(1)) and zip the Options.
+                // zip returns Some only if *both* removals were successful.
+                let maybe_min = sub_block.key_values.swap_remove("mins");
+                let maybe_max = sub_block.key_values.swap_remove("maxs");
+                maybe_min.zip(maybe_max)
+            });
+
+        // Decide where the final values come from
+        let (min_string, max_string) = match sub_block_result {
+            // Case 1: Successfully got both from the sub-block
+            Some((min_val, max_val)) => Ok((min_val, max_val)),
+            // Case 2: Failed to get both from sub-block (it didn't exist, or lacked one/both keys)
+            None => {
+                // Attempt #2: Take ownership from the parent block's key_values
+                let min_res = take_key_owned(&mut block.key_values, "mins").map_err(|_| {
+                    VmfError::InvalidFormat(
+                        "Missing 'mins' key in Cordon block or its 'box' sub-block".to_string(),
+                    )
+                });
+                let max_res = take_key_owned(&mut block.key_values, "maxs").map_err(|_| {
+                    VmfError::InvalidFormat(
+                        "Missing 'maxs' key in Cordon block or its 'box' sub-block".to_string(),
+                    )
+                });
+
+                // Combine results, returning the first error encountered if any
+                match (min_res, max_res) {
+                    (Ok(min), Ok(max)) => Ok((min, max)),
+                    (Err(e), _) => Err(e),
+                    (_, Err(e)) => Err(e),
+                }
+            }
+        }?;
+
+        // Take ownership of 'name' and check 'active' from the parent block
+        let name = take_key_owned(&mut block.key_values, "name")?;
+        let active = get_key_ref(&block.key_values, "active")? == "1";
 
         Ok(Self {
-            name: get_key!(&block.key_values, "name")?.to_owned(),
-            active: get_key!(&block.key_values, "active")? == "1",
-            min: min.to_owned(),
-            max: max.to_owned(),
+            name,
+            active,
+            min: min_string,
+            max: max_string,
         })
     }
 }

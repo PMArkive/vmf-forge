@@ -1,35 +1,49 @@
 //! This module provides common structures and functions used across the VMF parser.
 
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{get_key, parse_hs_key};
+use crate::utils::{get_key_ref, take_and_parse_key, take_key_or_default};
 use crate::{
+    VmfBlock, VmfSerializable,
     errors::{VmfError, VmfResult},
     utils::To01String,
-    VmfBlock, VmfSerializable,
 };
 
 /// Represents the editor data of a VMF entity or solid.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct Editor {
     /// The color of the entity in the editor, in "R G B" format.
     pub color: String,
     /// The ID of the visgroup this entity is in, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub visgroup_id: Option<i32>,
     /// The ID of the group this entity is in, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub group_id: Option<i32>,
     /// Whether the entity is shown in the visgroup.
     pub visgroup_shown: bool,
     /// Whether the entity should automatically be shown in the visgroup.
     pub visgroup_auto_shown: bool,
     /// Comments associated with the entity, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub comments: Option<String>,
     /// The logical position of the entity in the editor, in "[x y]" format.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub logical_pos: Option<String>,
 }
 
@@ -50,17 +64,17 @@ impl Default for Editor {
 impl TryFrom<VmfBlock> for Editor {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let kv = &block.key_values;
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
 
         Ok(Self {
-            color: get_key!(kv, "color", "255 255 255".to_string()).to_owned(),
-            visgroup_id: parse_hs_key!(kv, "visgroupid", i32).ok(),
-            group_id: parse_hs_key!(kv, "groupid", i32).ok(),
-            visgroup_shown: get_key!(kv, "visgroupshown", "_".to_string()) == "1",
-            visgroup_auto_shown: get_key!(kv, "visgroupautoshown", "_".to_string()) == "1",
-            comments: kv.get("comments").cloned(),
-            logical_pos: kv.get("logicalpos").cloned(),
+            color: take_key_or_default(kv, "color", "255 255 255".to_string()),
+            visgroup_id: take_and_parse_key::<i32>(kv, "visgroupid").ok(),
+            group_id: take_and_parse_key::<i32>(kv, "groupid").ok(),
+            visgroup_shown: get_key_ref(kv, "visgroupshown").is_ok_and(|v| v == "1"),
+            visgroup_auto_shown: get_key_ref(kv, "visgroupautoshown").is_ok_and(|v| v == "1"),
+            comments: kv.swap_remove("comments"),
+            logical_pos: kv.swap_remove("logicalpos"),
         })
     }
 }

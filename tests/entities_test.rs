@@ -2,11 +2,11 @@
 mod tests {
     use indexmap::IndexMap;
     use pretty_assertions::assert_eq;
+    use vmf_forge::VmfBlock;
+    use vmf_forge::VmfSerializable;
     use vmf_forge::errors::VmfError;
     use vmf_forge::vmf::common::Editor;
     use vmf_forge::vmf::entities::*;
-    use vmf_forge::VmfBlock;
-    use vmf_forge::VmfSerializable;
 
     // Tests for Entity
     #[test]
@@ -90,7 +90,10 @@ mod tests {
         };
 
         let result = Entity::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt(_, _))));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test] // todo: fuck u, IndexMap (unsorted)!
@@ -484,7 +487,10 @@ mod tests {
         assert_eq!(connections.len(), 2);
         assert_eq!(
             connections[0],
-            ("OnTrigger".to_string(), "my_door\x1BOpen\x1B\x1B0\x1B-1".to_string())
+            (
+                "OnTrigger".to_string(),
+                "my_door\x1BOpen\x1B\x1B0\x1B-1".to_string()
+            )
         );
         assert_eq!(
             connections[1],

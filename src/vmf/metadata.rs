@@ -3,16 +3,18 @@
 use derive_more::{Deref, DerefMut, IntoIterator};
 
 use indexmap::IndexMap;
+#[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{get_key, parse_hs_key, To01String};
+use crate::utils::{To01String, get_key_ref, take_and_parse_key, take_key_owned};
 use crate::{
-    errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
+    errors::{VmfError, VmfResult},
 };
 
 /// Represents the version info of a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VersionInfo {
     /// The editor version.
     pub editor_version: i32,
@@ -29,14 +31,14 @@ pub struct VersionInfo {
 impl TryFrom<VmfBlock> for VersionInfo {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let kv = &block.key_values;
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
         Ok(Self {
-            editor_version: parse_hs_key!(kv, "editorversion", i32)?,
-            editor_build: parse_hs_key!(kv, "editorbuild", i32)?,
-            map_version: parse_hs_key!(kv, "mapversion", i32)?,
-            format_version: parse_hs_key!(kv, "formatversion", i32)?,
-            prefab: get_key!(kv, "prefab")? == "1",
+            editor_version: take_and_parse_key::<i32>(kv, "editorversion")?,
+            editor_build: take_and_parse_key::<i32>(kv, "editorbuild")?,
+            map_version: take_and_parse_key::<i32>(kv, "mapversion")?,
+            format_version: take_and_parse_key::<i32>(kv, "formatversion")?,
+            prefab: get_key_ref(kv, "prefab")? == "1",
         })
     }
 }
@@ -92,20 +94,143 @@ impl VmfSerializable for VersionInfo {
 }
 
 /// Represents a collection of VisGroups in a VMF file.
-#[derive(
-    Debug, Default, Clone, Serialize, Deserialize, PartialEq, Deref, DerefMut, IntoIterator,
-)]
+#[derive(Debug, Default, Clone, PartialEq, Deref, DerefMut, IntoIterator)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VisGroups {
     /// The list of VisGroups.
     #[deref]
     pub groups: Vec<VisGroup>,
 }
 
+/// Recursively finds a VisGroup by its ID within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_id(groups: &[VisGroup], id_to_find: i32) -> Option<&VisGroup> {
+    for group in groups {
+        if group.id == id_to_find {
+            return Some(group);
+        }
+        if let Some(ref children) = group.children {
+            if let Some(found) = find_visgroup_by_id(children, id_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+/// Recursively finds a mutable reference to a VisGroup by its ID within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_id_mut(
+    groups: &mut [VisGroup],
+    id_to_find: i32,
+) -> Option<&mut VisGroup> {
+    for group in groups {
+        if group.id == id_to_find {
+            return Some(group);
+        }
+        if let Some(ref mut children) = group.children {
+            if let Some(found) = find_visgroup_by_id_mut(children, id_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+/// Recursively finds a VisGroup by its name within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_name<'a>(groups: &'a [VisGroup], name_to_find: &str) -> Option<&'a VisGroup> {
+    for group in groups {
+        if group.name == name_to_find {
+            return Some(group);
+        }
+        if let Some(ref children) = group.children {
+            if let Some(found) = find_visgroup_by_name(children, name_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+/// Recursively finds a mutable reference to a VisGroup by its name within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_name_mut<'a>(
+    groups: &'a mut [VisGroup],
+    name_to_find: &str,
+) -> Option<&'a mut VisGroup> {
+    for group in groups {
+        if group.name == name_to_find {
+            return Some(group);
+        }
+        if let Some(ref mut children) = group.children {
+            if let Some(found) = find_visgroup_by_name_mut(children, name_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+impl VisGroups {
+    /// Finds a VisGroup by its name recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The exact name of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the found `VisGroup`, or `None`.
+    pub fn find_by_name(&self, name: &str) -> Option<&VisGroup> {
+        find_visgroup_by_name(&self.groups, name)
+    }
+
+    /// Finds a mutable reference to a VisGroup by its name recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The exact name of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a mutable reference to the found `VisGroup`, or `None`.
+    pub fn find_by_name_mut(&mut self, name: &str) -> Option<&mut VisGroup> {
+        find_visgroup_by_name_mut(&mut self.groups, name)
+    }
+
+    /// Finds a VisGroup by its ID recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The ID of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the found `VisGroup`, or `None`.
+    pub fn find_by_id(&self, id: i32) -> Option<&VisGroup> {
+        find_visgroup_by_id(&self.groups, id)
+    }
+
+    /// Finds a mutable reference to a VisGroup by its ID recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The ID of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a mutable reference to the found `VisGroup`, or `None`.
+    pub fn find_by_id_mut(&mut self, id: i32) -> Option<&mut VisGroup> {
+        find_visgroup_by_id_mut(&mut self.groups, id)
+    }
+}
+
 impl TryFrom<VmfBlock> for VisGroups {
     type Error = VmfError;
 
     fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let mut groups = Vec::with_capacity(12);
+        let mut groups = Vec::with_capacity(block.blocks.len());
         for group in block.blocks {
             groups.push(VisGroup::try_from(group)?);
         }
@@ -152,7 +277,8 @@ impl VmfSerializable for VisGroups {
 }
 
 /// Represents a VisGroup in a VMF file.
-#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Default, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VisGroup {
     /// The name of the VisGroup.
     pub name: String,
@@ -161,30 +287,32 @@ pub struct VisGroup {
     /// The color of the VisGroup in the editor.
     pub color: String,
     /// The child VisGroups of this VisGroup, if any.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub children: Option<Vec<VisGroup>>,
 }
 
 impl TryFrom<VmfBlock> for VisGroup {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
-        let children = if block.blocks.is_empty() {
-            None
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let children = if !block.blocks.is_empty() {
+            let mut children_vec = Vec::with_capacity(block.blocks.len());
+            for child_block in block.blocks {
+                children_vec.push(VisGroup::try_from(child_block)?);
+            }
+            Some(children_vec)
         } else {
-            Some(
-                block
-                    .blocks
-                    .into_iter()
-                    .map(VisGroup::try_from)
-                    .collect::<VmfResult<Vec<_>>>()?,
-            )
+            None
         };
 
+        let kv = &mut block.key_values;
         Ok(Self {
-            name: get_key!(block.key_values, "name")?.to_owned(),
-            id: parse_hs_key!(block.key_values, "visgroupid", i32)?,
-            color: get_key!(block.key_values, "color")?.to_owned(),
+            name: take_key_owned(kv, "name")?,
+            id: take_and_parse_key::<i32>(kv, "visgroupid")?,
+            color: take_key_owned(kv, "color")?,
             children,
         })
     }
@@ -244,7 +372,8 @@ impl VmfSerializable for VisGroup {
 }
 
 /// Represents the view settings of a VMF file.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct ViewSettings {
     /// Whether snapping to the grid is enabled.
     pub snap_to_grid: bool,
@@ -273,15 +402,15 @@ impl Default for ViewSettings {
 impl TryFrom<VmfBlock> for ViewSettings {
     type Error = VmfError;
 
-    fn try_from(block: VmfBlock) -> VmfResult<Self> {
+    fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
+        let kv = &mut block.key_values;
+
         Ok(Self {
-            snap_to_grid: get_key!(&block.key_values, "bSnapToGrid")? == "1",
-            show_grid: get_key!(&block.key_values, "bShowGrid")? == "1",
-            show_logical_grid: get_key!(&block.key_values, "bShowLogicalGrid")? == "1",
-            grid_spacing: get_key!(&block.key_values, "nGridSpacing")?
-                .parse()
-                .unwrap_or(64),
-            show_3d_grid: get_key!(&block.key_values, "bShow3DGrid", "0".into()) == "1",
+            snap_to_grid: get_key_ref(kv, "bSnapToGrid")? == "1",
+            show_grid: get_key_ref(kv, "bShowGrid")? == "1",
+            show_logical_grid: get_key_ref(kv, "bShowLogicalGrid")? == "1",
+            grid_spacing: take_and_parse_key::<u16>(kv, "nGridSpacing").unwrap_or(64),
+            show_3d_grid: get_key_ref(kv, "bShow3DGrid").map_or("0", |v| v) == "1",
         })
     }
 }
