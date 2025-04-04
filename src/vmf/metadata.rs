@@ -104,6 +104,124 @@ pub struct VisGroups {
     pub groups: Vec<VisGroup>,
 }
 
+/// Recursively finds a VisGroup by its ID within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_id<'a>(groups: &'a [VisGroup], id_to_find: i32) -> Option<&'a VisGroup> {
+    for group in groups {
+        if group.id == id_to_find {
+            return Some(group);
+        }
+        if let Some(ref children) = group.children {
+            if let Some(found) = find_visgroup_by_id(children, id_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+/// Recursively finds a mutable reference to a VisGroup by its ID within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_id_mut<'a>(groups: &'a mut [VisGroup], id_to_find: i32) -> Option<&'a mut VisGroup> {
+    for group in groups {
+        if group.id == id_to_find {
+            return Some(group);
+        }
+        if let Some(ref mut children) = group.children {
+            if let Some(found) = find_visgroup_by_id_mut(children, id_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+/// Recursively finds a VisGroup by its name within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_name<'a>(groups: &'a [VisGroup], name_to_find: &str) -> Option<&'a VisGroup> {
+    for group in groups {
+        if group.name == name_to_find {
+            return Some(group);
+        }
+        if let Some(ref children) = group.children {
+            if let Some(found) = find_visgroup_by_name(children, name_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+/// Recursively finds a mutable reference to a VisGroup by its name within a slice of VisGroups.
+/// Returns None if not found.
+fn find_visgroup_by_name_mut<'a>(groups: &'a mut [VisGroup], name_to_find: &str) -> Option<&'a mut VisGroup> {
+    for group in groups {
+        if group.name == name_to_find {
+            return Some(group);
+        }
+        if let Some(ref mut children) = group.children {
+            if let Some(found) = find_visgroup_by_name_mut(children, name_to_find) {
+                return Some(found);
+            }
+        }
+    }
+    None
+}
+
+impl VisGroups {
+    /// Finds a VisGroup by its name recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The exact name of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the found `VisGroup`, or `None`.
+    pub fn find_by_name(&self, name: &str) -> Option<&VisGroup> {
+        find_visgroup_by_name(&self.groups, name)
+    }
+
+    /// Finds a mutable reference to a VisGroup by its name recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `name` - The exact name of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a mutable reference to the found `VisGroup`, or `None`.
+    pub fn find_by_name_mut(&mut self, name: &str) -> Option<&mut VisGroup> {
+        find_visgroup_by_name_mut(&mut self.groups, name)
+    }
+
+    /// Finds a VisGroup by its ID recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The ID of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a reference to the found `VisGroup`, or `None`.
+    pub fn find_by_id(&self, id: i32) -> Option<&VisGroup> {
+        find_visgroup_by_id(&self.groups, id)
+    }
+
+    /// Finds a mutable reference to a VisGroup by its ID recursively within this collection.
+    ///
+    /// # Arguments
+    ///
+    /// * `id` - The ID of the VisGroup to find.
+    ///
+    /// # Returns
+    ///
+    /// An `Option` containing a mutable reference to the found `VisGroup`, or `None`.
+    pub fn find_by_id_mut(&mut self, id: i32) -> Option<&mut VisGroup> {
+        find_visgroup_by_id_mut(&mut self.groups, id)
+    }
+}
+
 impl TryFrom<VmfBlock> for VisGroups {
     type Error = VmfError;
 
