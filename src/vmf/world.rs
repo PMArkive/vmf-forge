@@ -5,10 +5,10 @@ use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 use super::common::Editor;
-use crate::utils::{get_key_ref, take_and_parse_key, take_key_owned, To01String};
+use crate::utils::{To01String, get_key_ref, take_and_parse_key, take_key_owned};
 use crate::{
-    errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
+    errors::{VmfError, VmfResult},
 };
 use std::mem;
 
@@ -23,7 +23,10 @@ pub struct World {
     /// The list of hidden solids in the world.
     pub hidden: Vec<Solid>,
     /// The groups present in the world, if any.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub group: Option<Group>,
 }
 
@@ -34,7 +37,7 @@ impl TryFrom<VmfBlock> for World {
         let estimated_solids = block.blocks.len().saturating_sub(1);
         let mut world = World {
             key_values: block.key_values,
-            solids: Vec::with_capacity(estimated_solids), 
+            solids: Vec::with_capacity(estimated_solids),
             hidden: Vec::with_capacity(16),
             group: None,
         };
@@ -230,17 +233,26 @@ pub struct Side {
     /// The V axis of the texture coordinates.
     pub v_axis: String,
     /// The rotation of the texture.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub rotation: Option<f32>,
     /// The scale of the lightmap.
     pub lightmap_scale: u16,
     /// The smoothing groups that this side belongs to.
     pub smoothing_groups: i32,
     /// flags
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub flags: Option<u32>,
     /// The displacement info of the side, if any.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub dispinfo: Option<DispInfo>,
 }
 
@@ -296,9 +308,12 @@ impl From<Side> for VmfBlock {
         key_values.insert("plane".to_string(), val.plane);
         key_values.insert("material".to_string(), val.material);
         key_values.insert("uaxis".to_string(), val.u_axis);
-        key_values.insert("vaxis".to_string(), val.v_axis);  
+        key_values.insert("vaxis".to_string(), val.v_axis);
         key_values.insert("lightmapscale".to_string(), val.lightmap_scale.to_string());
-        key_values.insert("smoothing_groups".to_string(), val.smoothing_groups.to_string());      
+        key_values.insert(
+            "smoothing_groups".to_string(),
+            val.smoothing_groups.to_string(),
+        );
 
         if let Some(rotation) = val.rotation {
             key_values.insert("rotation".to_string(), rotation.to_string());
@@ -315,7 +330,7 @@ impl From<Side> for VmfBlock {
         VmfBlock {
             name: "side".to_string(),
             key_values,
-            blocks
+            blocks,
         }
     }
 }
@@ -383,11 +398,11 @@ fn take_block(blocks: &mut Vec<VmfBlock>, name: &str) -> VmfResult<VmfBlock> {
     match index {
         // Some(idx) => Ok(mem::take(&mut blocks[idx])),
         Some(idx) => Ok(blocks.swap_remove(idx)),
-        None => Err(
-            VmfError::InvalidFormat(format!("Missing {} block in dispinfo", name))
-        )
+        None => Err(VmfError::InvalidFormat(format!(
+            "Missing {} block in dispinfo",
+            name
+        ))),
     }
-
 }
 
 /// Represents the displacement information for a side.
@@ -399,7 +414,10 @@ pub struct DispInfo {
     /// The starting position of the displacement.
     pub start_position: String,
     /// Flags for the displacement.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub flags: Option<u32>,
     /// The elevation of the displacement.
     pub elevation: f32,
@@ -433,18 +451,22 @@ impl TryFrom<VmfBlock> for DispInfo {
         let allowed_verts_block = take_block(&mut block.blocks, "allowed_verts")?;
 
         // These blocks may not be present in the decompiled vmf. Why?
-        let offsets = block.blocks.iter_mut()
+        let offsets = block
+            .blocks
+            .iter_mut()
             .find(|b| b.name == "offsets")
             .map_or_else(
                 || Ok(DispRows::default()),
-                |b| DispRows::try_from(mem::take(b))
+                |b| DispRows::try_from(mem::take(b)),
             )?;
 
-        let offset_normals = block.blocks.iter_mut()
+        let offset_normals = block
+            .blocks
+            .iter_mut()
             .find(|b| b.name == "offset_normals")
             .map_or_else(
                 || Ok(DispRows::default()),
-                |b| DispRows::try_from(mem::take(b))
+                |b| DispRows::try_from(mem::take(b)),
             )?;
 
         // Extract key-values from the parent dispinfo block
@@ -462,7 +484,6 @@ impl TryFrom<VmfBlock> for DispInfo {
         let triangle_tags = DispRows::try_from(triangle_tags_block)?;
         let allowed_verts = DispInfo::parse_allowed_verts(allowed_verts_block)?;
 
-
         Ok(DispInfo {
             power,
             start_position,
@@ -471,7 +492,7 @@ impl TryFrom<VmfBlock> for DispInfo {
             subdiv,
             normals,
             distances,
-            offsets, 
+            offsets,
             offset_normals,
             alphas,
             triangle_tags,
@@ -577,8 +598,10 @@ impl DispInfo {
             let verts: VmfResult<Vec<i32>> = value
                 .split_whitespace()
                 .map(|s| {
-                    s.parse::<i32>()
-                        .map_err(|e| VmfError::ParseInt { source: e, key: s.to_string()})
+                    s.parse::<i32>().map_err(|e| VmfError::ParseInt {
+                        source: e,
+                        key: s.to_string(),
+                    })
                 })
                 .collect();
             allowed_verts.insert(key, verts?);
@@ -669,7 +692,10 @@ impl TryFrom<VmfBlock> for DispRows {
             if let Some(stripped_idx) = key.strip_prefix("row") {
                 let index = stripped_idx
                     .parse::<usize>()
-                    .map_err(|e| VmfError::ParseInt { source: e, key: key.to_string() })?;
+                    .map_err(|e| VmfError::ParseInt {
+                        source: e,
+                        key: key.to_string(),
+                    })?;
                 if index >= rows.len() {
                     rows.resize(index + 1, String::new());
                 }

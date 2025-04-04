@@ -40,7 +40,10 @@ mod tests {
         }\n";
 
         let result = parse_vmf(input);
-        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]

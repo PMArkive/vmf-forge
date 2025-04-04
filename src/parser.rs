@@ -1,16 +1,16 @@
 //! This module provides the VMF parser implementation using the `pest` parsing library.
 
 use indexmap::IndexMap;
-use pest::iterators::Pair;
 use pest::Parser;
+use pest::iterators::Pair;
 use pest_derive::Parser;
 use std::mem;
 
 use crate::errors::{VmfError, VmfResult};
 
-use crate::vmf::regions::{Cordon, Cordons};
 use crate::VmfBlock;
 use crate::prelude::{Cameras, Entity, VersionInfo, ViewSettings, VisGroups, VmfFile, World};
+use crate::vmf::regions::{Cordon, Cordons};
 
 /// The VMF parser.
 #[derive(Parser)]
@@ -145,12 +145,11 @@ fn parse_block(pair: Pair<Rule>) -> VmfResult<VmfBlock> {
 #[inline]
 fn strip_quotes(s: &str) -> String {
     if s.starts_with('"') && s.ends_with('"') {
-        s[1..s.len()-1].to_string()
+        s[1..s.len() - 1].to_string()
     } else {
         s.to_string()
     }
 }
-
 
 #[cfg(test)]
 mod tests {

@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, black_box, criterion_group, criterion_main};
 use std::{fs, time::Duration};
 use vmf_forge::VmfFile; // Adjust path if your library structure is different
 
@@ -21,7 +21,6 @@ fn benchmark_vmf_parsing(c: &mut Criterion) {
     group.sample_size(100);
     group.measurement_time(Duration::from_secs(10));
     group.warm_up_time(Duration::from_secs(3));
-
 
     // Benchmark parsing a relatively small VMF file
     group.bench_function("Parse Small VMF", |b| {

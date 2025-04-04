@@ -5,10 +5,10 @@ use indexmap::IndexMap;
 #[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{get_key_ref, take_and_parse_key, take_key_owned, To01String};
+use crate::utils::{To01String, get_key_ref, take_and_parse_key, take_key_owned};
 use crate::{
-    errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
+    errors::{VmfError, VmfResult},
 };
 
 /// Represents the camera data in a VMF file.
@@ -136,7 +136,7 @@ impl TryFrom<VmfBlock> for Cordons {
     type Error = VmfError;
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
-        let mut  cordons = Vec::with_capacity(block.blocks.len());
+        let mut cordons = Vec::with_capacity(block.blocks.len());
         for group in block.blocks {
             cordons.push(Cordon::try_from(group)?);
         }
@@ -208,8 +208,8 @@ impl TryFrom<VmfBlock> for Cordon {
 
     fn try_from(mut block: VmfBlock) -> VmfResult<Self> {
         // Attempt #1: Try to take ownership of "mins" and "maxs" from the first sub-block.
-        let sub_block_result: Option<(String, String)> = block.blocks.get_mut(0)
-            .and_then(|sub_block| {
+        let sub_block_result: Option<(String, String)> =
+            block.blocks.get_mut(0).and_then(|sub_block| {
                 // Try removing both keys using swap_remove (O(1)) and zip the Options.
                 // zip returns Some only if *both* removals were successful.
                 let maybe_min = sub_block.key_values.swap_remove("mins");
@@ -224,10 +224,16 @@ impl TryFrom<VmfBlock> for Cordon {
             // Case 2: Failed to get both from sub-block (it didn't exist, or lacked one/both keys)
             None => {
                 // Attempt #2: Take ownership from the parent block's key_values
-                let min_res = take_key_owned(&mut block.key_values, "mins")
-                    .map_err(|_| VmfError::InvalidFormat("Missing 'mins' key in Cordon block or its 'box' sub-block".to_string()));
-                let max_res = take_key_owned(&mut block.key_values, "maxs")
-                     .map_err(|_| VmfError::InvalidFormat("Missing 'maxs' key in Cordon block or its 'box' sub-block".to_string()));
+                let min_res = take_key_owned(&mut block.key_values, "mins").map_err(|_| {
+                    VmfError::InvalidFormat(
+                        "Missing 'mins' key in Cordon block or its 'box' sub-block".to_string(),
+                    )
+                });
+                let max_res = take_key_owned(&mut block.key_values, "maxs").map_err(|_| {
+                    VmfError::InvalidFormat(
+                        "Missing 'maxs' key in Cordon block or its 'box' sub-block".to_string(),
+                    )
+                });
 
                 // Combine results, returning the first error encountered if any
                 match (min_res, max_res) {
@@ -249,7 +255,6 @@ impl TryFrom<VmfBlock> for Cordon {
             max: max_string,
         })
     }
-
 }
 
 impl From<Cordon> for VmfBlock {

@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use vmf_forge::prelude::*; 
+use vmf_forge::prelude::*;
 
 // Helper function to create a VmfFile with a predefined VisGroup hierarchy and objects
 fn create_test_vmf() -> VmfFile {
@@ -23,7 +23,7 @@ fn create_test_vmf() -> VmfFile {
         color: "0 255 0".to_string(),
         children: Some(vec![grandchild]),
     };
-     let parent1 = VisGroup {
+    let parent1 = VisGroup {
         id: 1,
         name: "Parent".to_string(),
         color: "255 0 0".to_string(),
@@ -71,26 +71,37 @@ fn create_test_vmf() -> VmfFile {
     vmf.entities.push(ent_other);
     vmf.hiddens.push(hidden_ent_parent); // Add to hiddens list
 
-
     // --- Solids ---
-     let mut solid_no_group = Solid { id: 500, ..Default::default() };
-     solid_no_group.editor.visgroup_id = None;
+    let mut solid_no_group = Solid {
+        id: 500,
+        ..Default::default()
+    };
+    solid_no_group.editor.visgroup_id = None;
 
-     let mut solid_parent = Solid { id: 501, ..Default::default() };
-     solid_parent.editor.visgroup_id = Some(1);
-     solid_parent.editor.color = "255 0 0".to_string(); // For mut test
+    let mut solid_parent = Solid {
+        id: 501,
+        ..Default::default()
+    };
+    solid_parent.editor.visgroup_id = Some(1);
+    solid_parent.editor.color = "255 0 0".to_string(); // For mut test
 
-     let mut solid_child1 = Solid { id: 502, ..Default::default() };
-     solid_child1.editor.visgroup_id = Some(2);
-     solid_child1.editor.color = "0 255 0".to_string(); // For mut test
+    let mut solid_child1 = Solid {
+        id: 502,
+        ..Default::default()
+    };
+    solid_child1.editor.visgroup_id = Some(2);
+    solid_child1.editor.color = "0 255 0".to_string(); // For mut test
 
-     let mut hidden_solid_child1 = Solid { id: 602, ..Default::default() };
-     hidden_solid_child1.editor.visgroup_id = Some(2);
+    let mut hidden_solid_child1 = Solid {
+        id: 602,
+        ..Default::default()
+    };
+    hidden_solid_child1.editor.visgroup_id = Some(2);
 
-     vmf.world.solids.push(solid_no_group);
-     vmf.world.solids.push(solid_parent);
-     vmf.world.solids.push(solid_child1);
-     vmf.world.hidden.push(hidden_solid_child1); // Add to world.hidden list
+    vmf.world.solids.push(solid_no_group);
+    vmf.world.solids.push(solid_parent);
+    vmf.world.solids.push(solid_child1);
+    vmf.world.hidden.push(hidden_solid_child1); // Add to world.hidden list
 
     vmf
 }
@@ -167,7 +178,6 @@ mod tests {
         assert!(entities_iter_children.is_none());
     }
 
-
     // --- Tests for get_solids_in_visgroup (immutable) ---
     #[test]
     fn test_get_solids_direct_no_children() {
@@ -197,7 +207,6 @@ mod tests {
         assert_eq!(solid_ids, HashSet::from([501, 502, 602]));
     }
 
-
     #[test]
     fn test_get_solids_no_solids_in_group() {
         let vmf = create_test_vmf();
@@ -220,7 +229,6 @@ mod tests {
         assert!(solids_iter_children.is_none());
     }
 
-
     // --- Tests for get_entities_in_visgroup_mut (mutable) ---
     #[test]
     fn test_get_entities_mut_modification() {
@@ -241,7 +249,11 @@ mod tests {
                     break;
                 }
             }
-            assert!(found, "Target entity {} not found in iterator", target_entity_id);
+            assert!(
+                found,
+                "Target entity {} not found in iterator",
+                target_entity_id
+            );
         } // Mutable borrow ends here
 
         // Verify the change outside the borrow
@@ -256,7 +268,6 @@ mod tests {
         let entities_iter_mut = vmf.get_entities_in_visgroup_mut(99, false);
         assert!(entities_iter_mut.is_none());
     }
-
 
     // --- Tests for get_solids_in_visgroup_mut (mutable) ---
     #[test]
@@ -277,7 +288,11 @@ mod tests {
                     break;
                 }
             }
-            assert!(found, "Target solid {} not found in iterator", target_solid_id);
+            assert!(
+                found,
+                "Target solid {} not found in iterator",
+                target_solid_id
+            );
         } // Mutable borrow ends here
 
         // Verify the change outside the borrow

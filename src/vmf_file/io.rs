@@ -1,9 +1,13 @@
-use std::{fs::File, io::{Read, Write}, path::Path, str::FromStr};
+use std::{
+    fs::File,
+    io::{Read, Write},
+    path::Path,
+    str::FromStr,
+};
 
-use crate::{parser, VmfError, VmfResult};
+use crate::{VmfError, VmfResult, parser};
 
 use super::VmfFile;
-
 
 impl VmfFile {
     /// Parses a VMF file from a string.

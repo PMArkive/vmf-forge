@@ -2,11 +2,11 @@
 mod tests {
     use indexmap::IndexMap;
     use pretty_assertions::assert_eq;
+    use vmf_forge::VmfBlock;
+    use vmf_forge::VmfSerializable;
     use vmf_forge::errors::VmfError;
     use vmf_forge::vmf::common::Editor;
     use vmf_forge::vmf::world::*;
-    use vmf_forge::VmfBlock;
-    use vmf_forge::VmfSerializable;
 
     // Tests for World
     #[test]
@@ -98,7 +98,10 @@ mod tests {
 
         let result = World::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]
@@ -269,7 +272,10 @@ mod tests {
 
         let result = Solid::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]
@@ -378,7 +384,10 @@ mod tests {
 
         let result = Side::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]
@@ -491,7 +500,10 @@ mod tests {
             blocks: vec![],
         };
         let result = Group::try_from(block);
-        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
     #[test]
     fn group_to_vmf_string() {

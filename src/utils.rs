@@ -1,7 +1,7 @@
 //! Utility functions and macros used throughout the VMF parser.
 
-use indexmap::IndexMap;
 use crate::{VmfError, VmfResult};
+use indexmap::IndexMap;
 
 /// A trait for converting a boolean value to a "0" or "1" string.
 pub trait To01String {
@@ -46,14 +46,13 @@ pub(crate) fn take_key_owned(map: &mut IndexMap<String, String>, key: &str) -> V
 pub(crate) fn take_and_parse_key<T>(map: &mut IndexMap<String, String>, key: &str) -> VmfResult<T>
 where
     T: std::str::FromStr,
-    VmfError: From<(T::Err, String)>, 
+    VmfError: From<(T::Err, String)>,
 {
     let value_string = take_key_owned(map, key)?;
     value_string
         .parse::<T>()
-        .map_err(|e| VmfError::from((e, key.to_string()))) 
+        .map_err(|e| VmfError::from((e, key.to_string())))
 }
-
 
 /// Removes a key and returns the owned `String`, or returns a default `String` if not found.
 /// Modifies the map if the key exists.
@@ -66,11 +65,9 @@ pub(crate) fn take_key_or_default(
     map.swap_remove(key).unwrap_or(default)
 }
 
-
-
 #[cfg(test)]
 mod tests {
-    use super::*; 
+    use super::*;
     use crate::errors::VmfError;
     use indexmap::IndexMap;
 
@@ -94,7 +91,7 @@ mod tests {
         let result = get_key_ref(&map, "test_key");
         assert!(matches!(result, Err(VmfError::InvalidFormat(_))));
         if let Err(VmfError::InvalidFormat(msg)) = result {
-             assert!(msg.contains("'test_key' key not found"));
+            assert!(msg.contains("'test_key' key not found"));
         }
     }
 
@@ -111,14 +108,14 @@ mod tests {
         assert!(!map.contains_key("test_key"));
     }
 
-     #[test]
+    #[test]
     fn take_key_owned_missing_key() {
         let mut map = IndexMap::<String, String>::new();
         // take_key_owned returns Err on missing key
         let result = take_key_owned(&mut map, "test_key");
         assert!(matches!(result, Err(VmfError::InvalidFormat(_))));
         if let Err(VmfError::InvalidFormat(msg)) = result {
-             assert!(msg.contains("'test_key' key not found"));
+            assert!(msg.contains("'test_key' key not found"));
         }
     }
 
@@ -167,8 +164,8 @@ mod tests {
         // take_and_parse_key returns Err(InvalidFormat) on missing key (via take_key_owned)
         let result = take_and_parse_key::<i32>(&mut map, "test_key");
         assert!(matches!(result, Err(VmfError::InvalidFormat(_))));
-         if let Err(VmfError::InvalidFormat(msg)) = result {
-             assert!(msg.contains("'test_key' key not found"));
+        if let Err(VmfError::InvalidFormat(msg)) = result {
+            assert!(msg.contains("'test_key' key not found"));
         }
     }
 

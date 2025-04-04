@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::utils::{get_key_ref, take_and_parse_key, take_key_or_default};
 use crate::{
+    VmfBlock, VmfSerializable,
     errors::{VmfError, VmfResult},
     utils::To01String,
-    VmfBlock, VmfSerializable,
 };
 
 /// Represents the editor data of a VMF entity or solid.
@@ -18,20 +18,32 @@ pub struct Editor {
     /// The color of the entity in the editor, in "R G B" format.
     pub color: String,
     /// The ID of the visgroup this entity is in, if any.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub visgroup_id: Option<i32>,
     /// The ID of the group this entity is in, if any.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub group_id: Option<i32>,
     /// Whether the entity is shown in the visgroup.
     pub visgroup_shown: bool,
     /// Whether the entity should automatically be shown in the visgroup.
     pub visgroup_auto_shown: bool,
     /// Comments associated with the entity, if any.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub comments: Option<String>,
     /// The logical position of the entity in the editor, in "[x y]" format.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub logical_pos: Option<String>,
 }
 

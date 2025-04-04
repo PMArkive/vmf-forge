@@ -1,8 +1,8 @@
 //! This module provides structures for representing entities in a VMF file.
 
 use crate::{
-    errors::{VmfError, VmfResult},
     VmfBlock, VmfSerializable,
+    errors::{VmfError, VmfResult},
 };
 use derive_more::{Deref, DerefMut, IntoIterator};
 use indexmap::IndexMap;
@@ -20,10 +20,16 @@ pub struct Entity {
     /// The key-value pairs associated with this entity.
     pub key_values: IndexMap<String, String>,
     /// The output connections of this entity.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub connections: Option<Vec<(String, String)>>,
     /// The solids associated with this entity, if any.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub solids: Option<Vec<Solid>>,
     /// The editor data for this entity.
     pub editor: Editor,
@@ -466,12 +472,12 @@ fn process_connections(map: IndexMap<String, String>) -> Option<Vec<(String, Str
 
     // Estimate: we assume an average of no more than 2 records per output
     let mut result = Vec::with_capacity(map.len() * 2);
-    for (key, value) in map.iter() { // Используем iter, т.к. map по ссылке
+    for (key, value) in map.iter() {
+        // Используем iter, т.к. map по ссылке
         for part in value.split('\r') {
             result.push((key.clone(), part.to_string()));
         }
     }
-
 
     Some(result)
 }

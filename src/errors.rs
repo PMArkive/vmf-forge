@@ -41,12 +41,18 @@ pub type VmfResult<T> = Result<T, VmfError>;
 
 impl From<(std::num::ParseIntError, String)> for VmfError {
     fn from(err: (std::num::ParseIntError, String)) -> Self {
-        VmfError::ParseInt { source: err.0, key: err.1 }
+        VmfError::ParseInt {
+            source: err.0,
+            key: err.1,
+        }
     }
 }
 
 impl From<(std::num::ParseFloatError, String)> for VmfError {
     fn from(err: (std::num::ParseFloatError, String)) -> Self {
-        VmfError::ParseFloat { source: err.0, key: err.1 }
+        VmfError::ParseFloat {
+            source: err.0,
+            key: err.1,
+        }
     }
 }

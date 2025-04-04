@@ -14,7 +14,10 @@ mod visgroup_ops;
 #[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
 pub struct VmfFile {
     /// The path to the VMF file, if known.
-    #[cfg_attr(feature = "serialization", serde(default, skip_serializing_if = "Option::is_none"))]
+    #[cfg_attr(
+        feature = "serialization",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     pub path: Option<String>,
     /// The version info of the VMF file.
     pub versioninfo: VersionInfo,
@@ -41,9 +44,9 @@ impl Default for VmfFile {
             versioninfo: Default::default(),
             visgroups: Default::default(),
             viewsettings: Default::default(),
-            world: Default::default(), 
-            entities: Entities(Vec::with_capacity(128)), 
-            hiddens: Entities(Vec::with_capacity(16)), 
+            world: Default::default(),
+            entities: Entities(Vec::with_capacity(128)),
+            hiddens: Entities(Vec::with_capacity(16)),
             cameras: Default::default(),
             cordons: Default::default(),
         }

@@ -2,10 +2,10 @@
 mod tests {
     use indexmap::IndexMap;
     use pretty_assertions::assert_eq;
-    use vmf_forge::errors::VmfError;
-    use vmf_forge::vmf::metadata::*;
     use vmf_forge::VmfBlock;
     use vmf_forge::VmfSerializable;
+    use vmf_forge::errors::VmfError;
+    use vmf_forge::vmf::metadata::*;
 
     // Tests for VersionInfo
     #[test]
@@ -68,7 +68,10 @@ mod tests {
 
         let result = VersionInfo::try_from(block);
 
-        assert!(matches!(result, Err(VmfError::ParseInt{ source: _, key: _ })));
+        assert!(matches!(
+            result,
+            Err(VmfError::ParseInt { source: _, key: _ })
+        ));
     }
 
     #[test]
@@ -203,7 +206,7 @@ mod tests {
         let not_found = visgroups.find_by_name("NonExistent");
         assert!(not_found.is_none());
 
-         // Test case sensitivity (assuming names are case-sensitive)
+        // Test case sensitivity (assuming names are case-sensitive)
         let case_mismatch = visgroups.find_by_name("parent");
         assert!(case_mismatch.is_none());
     }
@@ -228,7 +231,7 @@ mod tests {
         assert!(not_found.is_none());
     }
 
-     #[test]
+    #[test]
     fn test_visgroups_find_by_name_mut() {
         let mut visgroups = create_test_visgroups();
         let new_name = "ParentModified".to_string();
