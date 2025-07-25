@@ -1,6 +1,6 @@
 [package]
 name = "vmf-forge"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2024"
 authors = ["laVashik <contact@lavashik.lol>"]
 description = "A parser for Valve Map Format (VMF) files"
@@ -13,11 +13,11 @@ categories = ["parser-implementations", "game-development"]
 
 [[bench]]
 name = "vmf_parser_bench"
-harness = false 
+harness = false
 
 [[bench]]
 name = "parser_iai_bench"
-harness = false 
+harness = false
 
 [dependencies]
 pest = "2.8.0"
