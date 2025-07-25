@@ -273,8 +273,8 @@ impl TryFrom<VmfBlock> for Side {
 
         // Parse required numeric fields, taking ownership
         let id = take_and_parse_key::<u32>(kv, "id")?;
-        let lightmap_scale = take_and_parse_key::<u16>(kv, "lightmapscale")?;
-        let smoothing_groups = take_and_parse_key::<i32>(kv, "smoothing_groups")?;
+        let lightmap_scale = take_and_parse_key::<u16>(kv, "lightmapscale").unwrap_or(16);
+        let smoothing_groups = take_and_parse_key::<i32>(kv, "smoothing_groups").unwrap_or(0);
 
         // Parse optional numeric fields using .ok()
         // This will consume the key if present and parseable, otherwise yield None

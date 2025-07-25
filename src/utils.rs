@@ -28,7 +28,7 @@ impl To01String for bool {
 #[inline(always)]
 pub(crate) fn get_key_ref<'a>(map: &'a IndexMap<String, String>, key: &str) -> VmfResult<&'a str> {
     map.get(key)
-        .map(|s| s.as_str()) // Возвращаем &str для большей гибкости
+        .map(|s| s.as_str()) // Returns &str for greater flexibility
         .ok_or_else(|| VmfError::InvalidFormat(format!("'{}' key not found", key)))
 }
 
